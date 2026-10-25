@@ -1,0 +1,102 @@
+# facts.toml: statements from the client's documents that the text may rely on.
+# On every run the program looks for the quote on the given page of the document.
+# A fact counts only if a person confirmed it AND the quote is found.
+# Every fact below was DRAFTED by the program's authors and is NOT confirmed: confirmed_by is empty.
+#
+# Fields of each [[fact]]:
+#   id            name used in templates
+#   statement     what the fact supports, in plain words
+#   document      file name; must be listed in settings.toml [documents].
+#                 "" = no document: only the person who confirms it supports it
+#   page          page of the document; documents without pages (.txt, .docx) use 1
+#   quote         exact text from the document ("" only when document is "")
+#   confirmed_by  who checked the quote against the document ("" = not confirmed)
+#   confirmed_on  date of that check, "YYYY-MM-DD" ("" = not confirmed)
+# Optional fields:
+#   about         a figure whose change this fact explains
+#   direction     "creștere" or "scădere": must match the calculated direction of `about`
+#   explains_gap  a figure; when that figure is a gap, this statement is added to the reason
+#   figure        this fact supplies a figure with this id ...
+#   value         ... whose value is this number, written exactly as in the quote ...
+#   unit          ... in this unit (from settings.toml [units])
+
+[[fact]]
+id = "scr_cause_market"
+statement = "SCR a scăzut în 2025 în principal din cauza scăderii riscului de piață"
+document = "nota_functia_actuariala_2026-02-02.docx"
+page = 1
+quote = "Cerința de capital de solvabilitate a scăzut la 31 decembrie 2025 față de anul anterior, în principal ca urmare a scăderii riscului de piață."
+about = "scr"
+direction = "scădere"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "dividends_paid_fs"
+statement = "în 2025 Societatea a plătit dividende de 15.000.000 lei"
+document = "situatii_financiare_2025_extras.pdf"
+page = 1
+quote = "Dividende plătite (fluxuri de numerar din activitatea de finanțare) (15.000.000)"
+figure = "dividends_paid"
+value = "15.000.000"
+unit = "lei"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "dividends_approved_aga"
+statement = "AGA din 24.04.2025 a aprobat dividende de 15.000.000 lei"
+document = "proces_verbal_AGA_2025-04-24.txt"
+page = 1
+quote = "distribuirea de dividende în valoare totală de 15.000.000 lei din profitul net al exercițiului financiar 2024"
+figure = "dividends_approved"
+value = "15.000.000"
+unit = "lei"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "dividend_policy"
+statement = "politica de dividende aprobată de Consiliul de Administrație a rămas neschimbată"
+document = "proces_verbal_AGA_2025-04-24.txt"
+page = 1
+quote = "politica de dividende aprobată de Consiliul de Administrație în 2023 rămâne neschimbată"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "mcr_in_progress"
+statement = "calculul MCR nu este finalizat, conform notei funcției actuariale din 2 februarie 2026"
+document = "nota_functia_actuariala_2026-02-02.docx"
+page = 1
+quote = "Calculul cerinței de capital minim este în curs de finalizare și va fi transmis separat."
+explains_gap = "mcr"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "standard_formula"
+statement = "Societatea calculează SCR cu formula standard, fără parametri specifici proprii"
+document = "nota_functia_actuariala_2026-02-02.docx"
+page = 1
+quote = "Calculele folosesc formula standard. Societatea nu utilizează parametri specifici proprii."
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "legal_basis"
+statement = "fondurile proprii sunt clasificate conform Regulamentului delegat (UE) 2015/35 și Legii nr. 237/2015, aplicabile Societății începând cu 1 ianuarie 2016"
+document = ""                      # no document: needs a person's confirmation
+page = 1
+quote = ""
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
+id = "mcr_covered"
+statement = "MCR a fost acoperită integral la 31 decembrie 2025"
+document = ""                      # no source found yet: stays a gap until one is found and confirmed
+page = 1
+quote = ""
+confirmed_by = ""
+confirmed_on = ""

@@ -1,0 +1,7 @@
+# gap_reasons.toml: the only reasons a gap may give, in Romanian.
+# The program fills the {names} in braces; the text around them is yours to change.
+# Every name the program uses must be here, or the run stops before writing a draft.
+
+file_missing = "fișierul {file} nu există în folderul din care rulează programul"
+file_unreadable = "fișierul {file} nu poate fi citit ({error})"
+unexpected_error = "eroare neprevăzută la {what} ({error})"

@@ -1,0 +1,48 @@
+# relations.toml: checks between figures, run before any figure reaches the text.
+#
+# Fields of each [[relation]]:
+#   id         name shown in verificari.md
+#   check      figure ids joined by + - * / and compared with ==, < or >
+#   tolerance  for ==: largest difference allowed, in report units (mil. lei or %).
+#              "0" = must match exactly. Only the ratio has "0.05": its stored value is rounded.
+#   marks      figures that become conflicts (gaps until a decision) if the check fails
+#   fills      optional: a figure whose cell holds a formula with no saved value
+#              is computed from the right side of the check
+
+[[relation]]
+id = "own_funds_tiers"
+check = "own_funds_total == own_funds_t1 + own_funds_t2 + own_funds_t3"
+tolerance = "0"
+marks = ["own_funds_total", "own_funds_t1", "own_funds_t2", "own_funds_t3"]
+fills = "own_funds_total"
+
+[[relation]]
+id = "scr_basic_from_modules"
+check = "scr_basic == scr_underwriting + scr_market + scr_counterparty - scr_diversification"
+tolerance = "0"
+marks = ["scr_basic", "scr_underwriting", "scr_market", "scr_counterparty", "scr_diversification"]
+fills = "scr_basic"
+
+[[relation]]
+id = "scr_from_basic"
+check = "scr == scr_basic + scr_operational"
+tolerance = "0"
+marks = ["scr", "scr_basic", "scr_operational"]
+fills = "scr"
+
+[[relation]]
+id = "ratio_from_own_funds"
+check = "solvency_ratio == own_funds_total / scr"
+tolerance = "0.05"
+marks = ["solvency_ratio"]          # own funds and SCR have their own checks
+
+[[relation]]
+id = "mcr_below_scr"
+check = "mcr < scr"
+marks = ["mcr"]
+
+[[relation]]
+id = "dividends_agree"
+check = "dividends_paid == dividends_approved"
+tolerance = "0"
+marks = ["dividends_paid", "dividends_approved"]

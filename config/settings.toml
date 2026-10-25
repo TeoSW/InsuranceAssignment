@@ -1,0 +1,46 @@
+# settings.toml: what this run produces and which files it may open.
+# Paths are file names in the folder you run the program from (date/).
+
+reporting_year = 2025              # year of the report being drafted
+prior_year = 2024                  # comparison year; must be reporting_year - 1
+sections = ["E"]                   # sections to render; each needs config/templates/<section>.md
+
+[workbooks]
+current = "registru_2025.xlsx"     # this year's workbook
+prior = "registru_2024.xlsx"       # last year's workbook: comparisons only, never this year's figure
+
+[documents]                        # the ONLY documents the program may open: file name = what it is
+"situatii_financiare_2025_extras.pdf" = "situațiile financiare auditate 2025, extras"
+"proces_verbal_AGA_2025-04-24.txt" = "procesul-verbal al AGA din 24.04.2025"
+"nota_functia_actuariala_2026-02-02.docx" = "nota funcției actuariale din 02.02.2026"
+"proces_verbal_CA_2025-02-18_scanat.pdf" = "procesul-verbal al CA din 18.02.2025 (scanat)"
+
+[reading]
+current_column = "an curent"       # text inside the header cell of this year's column
+prior_column = "an anterior"       # text inside the header cell of last year's column
+unit_prefix = "valori în"          # the unit cell starts with this text; the rest of it names the unit
+
+[units]                            # unit text found after "valori în" = how many lei one unit is
+"lei" = 1
+"mii lei" = 1000
+"milioane lei" = 1000000
+"mii lei, cu excepția numărului de dosare" = 1000   # counts are never multiplied by the unit
+
+[words]                            # the only words the program picks by itself
+up = "în creștere"                 # direction when this year's value is higher
+down = "în scădere"                # direction when this year's value is lower
+gap = "[de completat: {reason}]"   # how a gap is written; {reason} comes from gap_reasons.toml
+not_approved = "> ȘABLON NEAPROBAT: textul de mai jos nu a fost aprobat și nu se publică."   # first line of a draft whose template is not approved
+
+[format]                           # report number format (report rule 5); {number} is already rounded
+amount = "{number} mil. lei"       # money, in millions of lei
+percent = "{number} %"             # percentages
+points = "{number} puncte procentuale"   # change of a percentage
+
+[decisions]
+forbidden_sources = ["cifra de anul trecut", "valoarea de anul trecut", "last year"]   # a decision whose source contains one of these is rejected
+
+[output]                           # files written to output/
+draft = "sectiunea_{section}_{year}.md"   # the draft of one section
+trace = "trasabilitate.csv"        # one line per figure: value, source, status, reason
+checks = "verificari.md"           # checksums, hidden sheets, checks, conflicts, decisions, facts

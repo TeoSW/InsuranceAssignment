@@ -1,0 +1,96 @@
+# figures.toml: the workbook figures section E needs.
+# A figure is found by its row label, in a sheet found by its name. There are no cell addresses:
+# the column comes from the header ("an curent") and the unit from the sheet header ("Valori în ...").
+#
+# Fields of each [[figure]]:
+#   id                      name used in relations, decisions and templates
+#   sheets                  accepted sheet names (compared ignoring case, spaces and ş/ș)
+#   labels                  accepted row labels (compared the same way); the value is used as stored
+#   labels_stored_negative  optional: labels under which the workbook stores the value with a minus sign;
+#                           the value is multiplied by -1
+#   kind                    amount (lei, uses the sheet unit) | percent (stored as a fraction) | count
+
+# Own funds (sheet "Capital")
+
+[[figure]]
+id = "own_funds_t1"
+sheets = ["Capital"]
+labels = ["Fonduri proprii eligibile SCR, nivel 1"]
+kind = "amount"
+
+[[figure]]
+id = "own_funds_t2"
+sheets = ["Capital"]
+labels = ["Fonduri proprii eligibile SCR, nivel 2"]
+kind = "amount"
+
+[[figure]]
+id = "own_funds_t3"
+sheets = ["Capital"]
+labels = ["Fonduri proprii eligibile SCR, nivel 3"]
+kind = "amount"
+
+[[figure]]
+id = "own_funds_total"
+sheets = ["Capital"]
+labels = ["Fonduri proprii eligibile SCR, total"]
+kind = "amount"
+
+# Capital requirements and ratio (sheet "Capital")
+
+[[figure]]
+id = "scr"
+sheets = ["Capital"]
+labels = ["SCR"]
+kind = "amount"
+
+[[figure]]
+id = "mcr"
+sheets = ["Capital"]
+labels = ["MCR"]
+kind = "amount"
+
+[[figure]]
+id = "solvency_ratio"
+sheets = ["Capital"]
+labels = ["Rata de solvabilitate"]
+kind = "percent"
+
+# SCR components (sheet "SCR_module"); used to check the SCR, not shown in section E
+
+[[figure]]
+id = "scr_underwriting"
+sheets = ["SCR_module"]
+labels = ["Risc de subscriere asigurare generală"]
+kind = "amount"
+
+[[figure]]
+id = "scr_market"
+sheets = ["SCR_module"]
+labels = ["Risc de piață"]
+kind = "amount"
+
+[[figure]]
+id = "scr_counterparty"
+sheets = ["SCR_module"]
+labels = ["Risc de contrapartidă"]
+kind = "amount"
+
+[[figure]]
+id = "scr_diversification"          # positive amount by which diversification lowers the basic SCR
+sheets = ["SCR_module"]
+labels = ["Efect de diversificare (se scade)"]                # 2025 workbook: stored positive
+labels_stored_negative = ["Diversificare (valoare negativă)"] # 2024 workbook: stored negative
+kind = "amount"
+
+[[figure]]
+id = "scr_basic"
+sheets = ["SCR_module"]
+labels = ["SCR de bază"]
+kind = "amount"
+
+[[figure]]
+id = "scr_operational"
+sheets = ["SCR_module"]
+labels = ["Risc operațional"]
+kind = "amount"

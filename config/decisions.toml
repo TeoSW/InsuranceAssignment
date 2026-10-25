@@ -1,0 +1,26 @@
+# decisions.toml: how a person resolved a conflict between sources. Written only by people.
+# A decision applies only while the conflicting values are exactly the ones stored here;
+# if the workbook changes, the decision stops applying and the figure becomes a gap again.
+# Rejected at start (no draft): no source or reason, a source that is last year's figure,
+# or the same person as proposer and approver.
+#
+# Fields of each [[decision]]:
+#   figure       the figure in conflict, as listed in verificari.md
+#   values       the conflicting values, exactly as verificari.md prints them
+#   chosen       one of values, or "gap" to keep the figure empty
+#   source       what supports the chosen value (never last year's figure)
+#   reason       why
+#   proposed_by  who proposed it
+#   approved_by  who approved it; must be a different person
+#   date         "YYYY-MM-DD"
+#
+# Example (not a decision):
+# [[decision]]
+# figure = "solvency_ratio"
+# values = ["1.874", "1.974273879561612011572754552"]
+# chosen = "gap"
+# source = "..."
+# reason = "..."
+# proposed_by = "..."
+# approved_by = "..."
+# date = "YYYY-MM-DD"
