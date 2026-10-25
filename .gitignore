@@ -1,0 +1,7 @@
+# Python virtual environment and caches
+.venv/
+__pycache__/
+*.pyc
+
+# Client inputs: not part of the archive. The evaluators bring their own date/.
+date/

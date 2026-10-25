@@ -1,0 +1,4 @@
+# Exact versions, so next year's run reads the files the same way.
+openpyxl==3.1.5
+et-xmlfile==2.0.0   # needed by openpyxl
+pypdf==6.21.2

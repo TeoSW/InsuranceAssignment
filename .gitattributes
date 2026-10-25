@@ -1,0 +1,8 @@
+# Keep LF line endings on every machine, so the sha256 of an approved template
+# does not change when Git for Windows checks the file out (core.autocrlf).
+* text=auto eol=lf
+
+# Binary inputs used by the tests
+*.xlsx binary
+*.pdf binary
+*.docx binary
