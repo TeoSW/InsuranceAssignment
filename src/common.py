@@ -2,7 +2,7 @@
 the Value record that carries one figure, and the names of the gap reasons."""
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 # Old Romanian letters with a cedilla, mapped to the correct comma-below letters.
@@ -17,7 +17,13 @@ GAP_REASONS = (
     "sheet_not_found", "sheet_hidden", "sheet_ambiguous", "header_not_found", "header_ambiguous",
     "unit_not_found", "unit_unknown", "label_not_found", "label_repeated", "alias_two_rows", "row_two_figures",
     "value_missing", "value_missing_note", "value_text", "formula_no_value",
+    "conflict", "same_as_prior", "unit_doubt",
 )
+
+
+def exact(number):
+    """A Decimal as plain digits, the way verificari.md prints it and decisions.toml stores it."""
+    return format(number.normalize(), "f")
 
 
 @dataclass
@@ -32,6 +38,8 @@ class Value:
     status: str = "ok"              # ok | gap | conflict | decision
     reason: tuple = ()              # (gap reason name, {placeholder: text}) when not ok
     formula: bool = False           # the cell has a formula but no saved value (a relation may fill it)
+    sheet: str = ""                 # the sheet it was read from
+    candidates: list = field(default_factory=list)  # [(exact value, source)] when sources disagree
 
 
 def gap(figure, reason, source="", **args):

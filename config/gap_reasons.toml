@@ -22,3 +22,8 @@ value_missing = "valoarea pentru „{label}” lipsește în {file}, foaia {shee
 value_missing_note = "valoarea pentru „{label}” lipsește în {file}, foaia {sheet}; nota din rând: „{note}”"
 value_text = "în locul valorii pentru „{label}” este scris „{text}” ({file}, foaia {sheet})"
 formula_no_value = "celula cu formula pentru „{label}” nu are valoare salvată și nu a putut fi recalculată ({file}, foaia {sheet})"
+
+# Cross-checks between sources ({values} lists each value with its source)
+conflict = "pentru „{label}” sursele dau valori diferite ({values}); este nevoie de o decizie în config/decisions.toml"
+same_as_prior = "„{label}” are exact aceeași valoare ca în {prior_year} ({prior_source}); este nevoie de o decizie care să confirme că nu a fost copiată"
+unit_doubt = "unitatea de măsură a foii {sheet} din {file} nu se confirmă: aceeași cifră apare în altă sursă de exact 1.000 sau 1.000.000 de ori mai mare sau mai mică"

@@ -11,8 +11,7 @@ def read_figures(path, figures, settings, column="current"):
     """Each figure read from one column ("current" or "prior"). Returns ({id: Value}, hidden sheets)."""
     file = path.name
     try:
-        book = openpyxl.load_workbook(path, data_only=True)  # the values as last saved
-        formulas = openpyxl.load_workbook(path)  # the same cells, showing their formulas
+        book, formulas = open_book(path)
     except FileNotFoundError:
         return {figure["id"]: gap(figure, "file_missing", file=file) for figure in figures}, []
     except Exception as error:  # a damaged or foreign file must not stop the run
@@ -32,6 +31,32 @@ def read_figures(path, figures, settings, column="current"):
         else:
             values[figure["id"]] = safely(figure, "citirea", read_cell, place, formulas, figure, file)
     return values, hidden
+
+
+def open_book(path):
+    """The workbook twice: with the values as last saved, and with the formulas."""
+    return openpyxl.load_workbook(path, data_only=True), openpyxl.load_workbook(path)
+
+
+def read_elsewhere(path, figures, settings):
+    """{figure id: [Value]} for the same labels found in the other visible sheets (this year's column).
+    Used only to cross-check: a sheet where the label is absent or unreadable is skipped."""
+    try:
+        book, formulas = open_book(path)
+    except Exception:
+        return {}  # read_figures already reports the file
+    found = {}
+    for figure in figures:
+        own = {normalize_label(name) for name in figure["sheets"]}
+        for sheet in book.worksheets:
+            if sheet.sheet_state != "visible" or normalize_label(sheet.title) in own:
+                continue
+            place = safely(figure, "căutarea", locate, book, dict(figure, sheets=[sheet.title]), settings, "current", path.name)
+            if not isinstance(place, Value):
+                value = safely(figure, "citirea", read_cell, place, formulas, figure, path.name)
+                if value.status == "ok":
+                    found.setdefault(figure["id"], []).append(value)
+    return found
 
 
 def figures_sharing_a_row(places):
@@ -131,7 +156,8 @@ def read_cell(place, formulas, figure, file):
 
     number = to_decimal(cell.value)
     if number is not None:
-        return Value(figure["id"], figure["kind"], number * place["sign"] * place["lei"], source, label, place["unit"])
+        return Value(figure["id"], figure["kind"], number * place["sign"] * place["lei"], source, label, place["unit"],
+                     sheet=sheet.title)
     if is_formula:
         value = gap(figure, "formula_no_value", source, **here)
         value.formula = True
