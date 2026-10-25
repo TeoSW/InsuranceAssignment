@@ -41,14 +41,15 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
   - the tiers add up to total own funds;
   - modules minus diversification (sign handled by label) give the basic SCR, plus operational risk give the SCR;
   - the SCR is the same in every sheet where it appears;
-  - the stated ratio equals own funds / SCR, with a 0,05 tolerance on the displayed value;
+  - the stated ratio equals own funds / SCR, with a 0,05 tolerance on the displayed value (the only relation with the 0,05 tolerance);
   - last year's SCR equals the figure published in 2024;
   - MCR < SCR;
   - dividends in the financial statements equal the amount approved by the AGA.
+- Sums and same-value cross-checks match exactly (tolerance 0); the 0,05 tolerance applies only to a stored rounded value compared with its recalculation (the ratio).
 - Conflicts are never resolved silently. Only a config decision resolves one, with source, reason, the exact conflicting values, `proposed_by`, `approved_by` and date. If the current values differ from the stored ones, the decision does not apply: gap.
 - Four eyes: `proposed_by` must differ from `approved_by`. A decision without source or reason, with "last year's figure" as source, or with the same person in both fields is rejected.
 - Facts from documents live in a separate file: statement, document, page, exact quote, `confirmed_by`. On every run the program searches for the quote in the document. Not found: gap.
-- Config self-check at start: schema valid, decisions valid, no label alias that matches more than one row in its sheet. If the config fails this check, no draft is written and `verificari.md` says why. Problems in the workbook never block the run: they become gaps.
+- Config self-check at start: schema valid, decisions valid, ids known, gap reasons complete. If the config fails this check, no draft is written, `verificari.md` says why, and the exit code is 1. Alias problems that depend on the workbook (an alias matching two rows, two figures on one row) are not config errors: the affected figures become gaps and `verificari.md` lists them. Problems in the workbook never block the run: they become gaps.
 
 ## Text
 
