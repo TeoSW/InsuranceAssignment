@@ -41,7 +41,7 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
   - the tiers add up to total own funds;
   - modules minus diversification (sign handled by label) give the basic SCR, plus operational risk give the SCR;
   - the SCR is the same in every sheet where it appears;
-  - the stated ratio equals own funds / SCR, with a 0,05 tolerance on the displayed value (the only relation with the 0,05 tolerance);
+  - the stated ratio equals own funds / SCR (the only relation with a 0,05 tolerance on the displayed value);
   - last year's SCR equals the figure published in 2024;
   - MCR < SCR;
   - dividends in the financial statements equal the amount approved by the AGA.
