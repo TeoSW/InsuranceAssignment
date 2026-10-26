@@ -41,8 +41,8 @@ page = 1
 quote = "Cerința de capital de solvabilitate a scăzut la 31 decembrie 2025 față de anul anterior, în principal ca urmare a scăderii riscului de piață."
 about = "scr_market"
 direction = "scădere"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "dividends_paid_fs"

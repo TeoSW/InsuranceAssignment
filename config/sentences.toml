@@ -43,7 +43,7 @@ text = "În cursul anului {year}, Societatea a plătit dividende de {dividends_p
 id = "E2_scr"
 when = "fact scr_cause_market"
 needs = ["market_risk_down"]        # the cause names market risk: the workbook must show it falling too
-text ="La 31 decembrie {year}, SCR a fost de {scr}, {direction:scr} cu {change:scr} față de {prior:scr} la sfârșitul anului {prior_year}, în principal ca urmare a scăderii riscului de piață."
+text = "La 31 decembrie {year}, SCR a fost de {scr}, {direction:scr} cu {change:scr} față de {prior:scr} la sfârșitul anului {prior_year}, în principal ca urmare a scăderii riscului de piață."
 
 [[sentence]]
 id = "E2_scr"

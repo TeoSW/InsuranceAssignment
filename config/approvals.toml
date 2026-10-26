@@ -9,4 +9,4 @@
 [E]
 approved_by = "Teodor-Vasile Constantin"     # who approved the wording ("" = not approved)
 approved_on = "2026-10-26"                   # "YYYY-MM-DD"
-sha256 = ""                                  # sha256 of the approved text, from verificari.md ("" = not approved)
+sha256 = "1e25920db2418116d82ef8a3f99219be58debca32a19d521ba46f39d2dbb5533"   # sha256 of the approved text, from verificari.md ("" = not approved)
