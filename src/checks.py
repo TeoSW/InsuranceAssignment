@@ -94,7 +94,8 @@ def evaluate(relation, figures):
     calculated = value[relation["a"]] / value[relation["b"]]
     displayed = (value[relation["r"]] * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)  # as the text shows it
     holds = abs(displayed - calculated * 100) <= RATIO_TOLERANCE
-    return holds, {relation["r"]: (calculated, f"calcul: {relation['a']} / {relation['b']}")}
+    a, b = (figures[relation[key]].label or relation[key] for key in ("a", "b"))  # the labels a reader knows
+    return holds, {relation["r"]: (calculated, f"calcul: „{a}” / „{b}”")}
 
 
 def run_relations(figures, relations):

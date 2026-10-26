@@ -269,6 +269,10 @@ class RealDataTest(unittest.TestCase):
     def test_ratio_conflict_values(self):
         self.assertEqual([text for text, source in self.figures["solvency_ratio"].candidates], ["1.874", RATIO_2025])
 
+    def test_calculated_ratio_names_its_figures_by_their_labels(self):
+        self.assertEqual(self.figures["solvency_ratio"].candidates[1][1],
+                         "calcul: „Fonduri proprii eligibile SCR, total” / „SCR”")
+
     def test_own_funds_scr_and_last_years_scr(self):
         self.assertEqual([self.figures[i].value for i in ("own_funds_total", "scr", "prior:scr")],
                          [D("293699300"), D("148763200"), D("151900000")])
