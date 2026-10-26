@@ -49,10 +49,12 @@ def label_key(text):
 
 
 def to_decimal(cell_value):
-    """A number from a workbook as an exact Decimal (from its digits, never the float). Else None."""
+    """A number from a workbook as an exact Decimal; None if the cell does not hold a number.
+    A float keeps 15 significant digits, as Excel does: this drops the binary noise Excel saves
+    (293699.39999999997 becomes 293699.4) and keeps every digit a person can type."""
     if isinstance(cell_value, bool) or not isinstance(cell_value, (int, float)):
         return None
-    number = Decimal(str(cell_value))
+    number = Decimal(format(cell_value, ".15g") if isinstance(cell_value, float) else cell_value)
     return number if number.is_finite() else None
 
 

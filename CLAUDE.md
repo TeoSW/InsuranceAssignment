@@ -32,7 +32,7 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 - The column is found by its header ("an curent", "an anterior"). The unit is read from the sheet header, including per-row exceptions ("cu excepția numărului de dosare"). Unknown unit: gap.
 - Label found but the value is empty or text: gap, with the reason taken from the row's other cells.
 - Formulas: the cached value is checked by recalculating from relations. Missing and not recalculable: gap.
-- Money: `Decimal(str(x))`, never float. ROUND_HALF_UP set explicitly.
+- Money: a number read from a workbook becomes a `Decimal` at once, a float at Excel's 15 significant digits (`Decimal(format(x, ".15g"))`: drops saved noise such as 293699.39999999997, keeps every typed digit); never a float in a calculation. ROUND_HALF_UP set explicitly.
 - Allowed sources: only the list in config (workbooks, financial statements, AGA minutes, board minutes, actuarial note). The Asigurări Dunărea report is never opened.
 
 ## Checks, conflicts, decisions

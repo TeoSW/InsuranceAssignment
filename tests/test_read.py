@@ -4,6 +4,7 @@ header, row by label) and quotes from documents. Every problem becomes a gap, ne
 import shutil
 import tempfile
 import unittest
+import zipfile
 from decimal import Decimal
 from pathlib import Path
 from unittest import mock
@@ -34,6 +35,15 @@ class TextTest(unittest.TestCase):
     def test_float_keeps_the_digits_written_in_the_file(self):
         # Decimal(231450.6) would be 231450.600000000005820766...
         self.assertEqual(to_decimal(231450.6), Decimal("231450.6"))
+
+    def test_excel_float_noise_is_dropped(self):
+        # Excel saves a total of one-decimal values as 293699.39999999997; it keeps only 15 significant digits
+        self.assertEqual(to_decimal(293699.39999999997), Decimal("293699.4"))
+        self.assertEqual(to_decimal(0.1 + 0.2), Decimal("0.3"))
+
+    def test_digits_beyond_15_are_cut_like_excel_does(self):
+        self.assertEqual(to_decimal(1.974273879561612), Decimal("1.97427387956161"))
+        self.assertEqual(to_decimal(12345678901234), Decimal("12345678901234"))  # whole numbers are kept as they are
 
     def test_not_a_number_gives_none(self):
         for value in (True, "12", None, float("nan")):
@@ -84,6 +94,20 @@ class FindTest(WorkbookCase):
                   "labels_stored_negative": ["Diversificare (valoare negativă)"]}
         values, _ = self.read([("SCR_module", table([["Diversificare (valoare negativă)", -28500000]], "Valori în lei"))], [figure])
         self.assertEqual(values["div"].value, Decimal("28500000"))
+
+    def test_a_total_saved_by_excel_with_float_noise(self):
+        # Excel writes 17 significant digits ("293699.39999999997"); openpyxl would write "293699.4"
+        path = make_book(self.tmp / "registru.xlsx", [("Capital", table([["SCR", 293699.4]]))])
+        with zipfile.ZipFile(path) as book:
+            files = {name: book.read(name) for name in book.namelist()}
+        sheet = "xl/worksheets/sheet1.xml"
+        self.assertEqual(files[sheet].count(b"<v>293699.4</v>"), 1)
+        files[sheet] = files[sheet].replace(b"<v>293699.4</v>", b"<v>293699.39999999997</v>")
+        with zipfile.ZipFile(path, "w") as book:
+            for name, data in files.items():
+                book.writestr(name, data)
+        values, _ = read_workbook(path, [SCR], SETTINGS)
+        self.assertEqual(values["scr"].value, Decimal("293699400"))
 
     def test_label_above_the_header_is_not_a_row(self):
         rows = [["SCR"], ["Valori în lei"], [None, "Indicator", "31.12 an curent"], [None, "SCR", 5]]
