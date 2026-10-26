@@ -1,8 +1,7 @@
-"""Shared helpers: text normalization, exact numbers, the report number format,
-the Value record that carries one figure, and the names of the gap reasons."""
+"""Shared helpers: text normalization, exact numbers and the report number format.
+(Being emptied: reading moved to read.py; the rest moves to config.py and render.py.)"""
 
 import re
-from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 # Old Romanian letters with a cedilla, mapped to the correct comma-below letters.
@@ -14,38 +13,10 @@ DECIMALS = {"amount": 1, "percent": 1, "count": 0}
 # Every gap reason the program can give. config/gap_reasons.toml must have a text for each.
 GAP_REASONS = (
     "file_missing", "file_unreadable", "unexpected_error",
-    "sheet_not_found", "sheet_hidden", "sheet_ambiguous", "header_not_found", "header_ambiguous",
-    "unit_not_found", "unit_unknown", "label_not_found", "label_repeated", "alias_two_rows", "row_two_figures",
-    "value_missing", "value_missing_note", "value_text", "formula_no_value",
-    "conflict", "same_as_prior", "unit_doubt",
+    "sheet_not_found", "header_not_found", "label_not_found", "label_not_unique", "unit_unknown",
+    "formula_no_value", "value_text", "value_missing", "value_missing_note",
+    "fact_unconfirmed", "fact_not_found",
 )
-
-
-def exact(number):
-    """A Decimal as plain digits, the way verificari.md prints it and decisions.toml stores it."""
-    return format(number.normalize(), "f")
-
-
-@dataclass
-class Value:
-    """One figure: its exact value, where it was found, and why it is a gap if it is one."""
-    id: str
-    kind: str                       # amount (in lei) | percent (a fraction) | count
-    value: Decimal | None = None    # None when the figure is a gap
-    source: str = ""                # file, sheet and cell; document and page; or the calculation
-    label: str = ""                 # the row label as written in the workbook
-    unit: str = ""                  # the unit read from the sheet, for amounts
-    status: str = "ok"              # ok | gap | conflict | decision
-    reason: tuple = ()              # (gap reason name, {placeholder: text}) when not ok
-    formula: bool = False           # the cell has a formula but no saved value (a relation may fill it)
-    sheet: str = ""                 # the sheet it was read from
-    candidates: list = field(default_factory=list)  # [(exact value, source)] when sources disagree
-
-
-def gap(figure, reason, source="", **args):
-    """A figure that cannot be filled, with a reason name from gap_reasons.toml and its placeholders."""
-    return Value(figure["id"], figure["kind"], source=source, label=args.get("label", ""),
-                 status="gap", reason=(reason, args))
 
 
 def normalize_text(text):
