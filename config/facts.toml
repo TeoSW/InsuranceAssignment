@@ -1,7 +1,9 @@
 # facts.toml: statements from the client's documents that the text may rely on.
 # On every run the program looks for the quote on the given page of the document.
 # A fact counts only if a person confirmed it AND the quote is found.
-# Every fact below was DRAFTED by the program's authors and is NOT confirmed: confirmed_by is empty.
+# The facts below were drafted by the program's authors. Teodor-Vasile Constantin checked the six
+# quotes against their documents on 2026-10-26 and confirmed them. legal_basis and mcr_covered
+# stay unconfirmed: no 2025 document supports them.
 #
 # Fields of each [[fact]]:
 #   id            name used in templates
@@ -28,8 +30,8 @@ page = 1
 quote = "Cerința de capital de solvabilitate a scăzut la 31 decembrie 2025 față de anul anterior, în principal ca urmare a scăderii riscului de piață."
 about = "scr"
 direction = "scădere"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "dividends_paid_fs"
@@ -40,8 +42,8 @@ quote = "Dividende plătite (fluxuri de numerar din activitatea de finanțare) (
 figure = "dividends_paid"
 value = "15.000.000"
 unit = "lei"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "dividends_approved_aga"
@@ -52,8 +54,8 @@ quote = "distribuirea de dividende în valoare totală de 15.000.000 lei din pro
 figure = "dividends_approved"
 value = "15.000.000"
 unit = "lei"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "dividend_policy"
@@ -61,8 +63,8 @@ statement = "politica de dividende aprobată de Consiliul de Administrație a r�
 document = "proces_verbal_AGA_2025-04-24.txt"
 page = 1
 quote = "politica de dividende aprobată de Consiliul de Administrație în 2023 rămâne neschimbată"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "mcr_in_progress"
@@ -71,8 +73,8 @@ document = "nota_functia_actuariala_2026-02-02.docx"
 page = 1
 quote = "Calculul cerinței de capital minim este în curs de finalizare și va fi transmis separat."
 explains = "mcr"
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "standard_formula"
@@ -80,13 +82,13 @@ statement = "Societatea calculează SCR cu formula standard, fără parametri sp
 document = "nota_functia_actuariala_2026-02-02.docx"
 page = 1
 quote = "Calculele folosesc formula standard. Societatea nu utilizează parametri specifici proprii."
-confirmed_by = ""
-confirmed_on = ""
+confirmed_by = "Teodor-Vasile Constantin"
+confirmed_on = "2026-10-26"
 
 [[fact]]
 id = "legal_basis"
 statement = "fondurile proprii sunt clasificate conform Regulamentului delegat (UE) 2015/35 și Legii nr. 237/2015, aplicabile Societății începând cu 1 ianuarie 2016"
-document = ""                      # no document: needs a person's confirmation
+document = ""                      # no 2025 document; the client's compliance function should confirm it
 page = 1
 quote = ""
 confirmed_by = ""

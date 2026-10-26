@@ -2,6 +2,9 @@
 # The approval covers templates/<section>.md and that section's sentences in sentences.toml.
 # A section without approved_by and approved_on is drawn with a "not approved" line on top.
 
+# In this assessment the author approves the wording; in production it would be the CFO
+# or the person he names.
+
 [E]
-approved_by = ""     # who approved the wording ("" = not approved)
-approved_on = ""     # "YYYY-MM-DD"
+approved_by = "Teodor-Vasile Constantin"     # who approved the wording ("" = not approved)
+approved_on = "2026-10-26"                   # "YYYY-MM-DD"
