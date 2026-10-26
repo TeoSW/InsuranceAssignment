@@ -1,25 +1,41 @@
 # AI.md
 
-Cu Claude în chat am analizat materialele și capcanele, am scris notițele, CLAUDE.md și promptul pentru Claude Code și am revizuit DESIGN.md. Claude Code, cu skill-urile superpowers, a scris codul și testele, iar eu aprobam planul, textul și config-ul la puncte de oprire. Conversațiile sunt în ai/conversations/, needitate.
+Cu Claude în chat am analizat materialele și capcanele, am scris notițele (probabil cea mai importantă parte dpmdv.), CLAUDE.md și promptul pentru Claude Code și am revizuit DESIGN.md. 
+
+Claude Code, cu skill-urile superpowers, a scris codul și testele, iar eu aprobam planul, textul și config-ul la punctele de oprire. 
 
 ## O sugestie pe care am refuzat-o
 
-Planul lui Claude Code ducea la un program prea complicat pentru o felie din secțiunea E: un mini-limbaj de șabloane cu [dacă] / [altfel], un evaluator de expresii pentru relații, o protecție separată pentru unități (×1.000) și 7 module. Le aprobasem chiar eu la primul punct de oprire. După patru task-uri, codul avea 531 de linii și acoperea mai puțin de jumătate din program. L-am oprit în task-ul 5 și am aprobat, cu amendamente, un plan de simplificare pe o ramură separată: patru tipuri fixe de relații, variantele de propoziții într-un tabel din config, 5 module. Versiunea veche a rămas în ramura t5-evaluator.
+Planul lui Claude Code complica prea mult partea de analiză din secțiunea E, făcuse un cod pe mai multe fișiere, cu mult mai multe linii de cod față de ce mi-aș fi dorit.
 
-Motivul: cel mai mare risc e rularea de anul viitor fără autori, iar eu trebuie să explic fiecare linie. Am refuzat apoi tăieturile care m-ar fi adus la 500 de linii, pentru că scoteau verificări sau făceau mesajele de eroare mai vagi. Codul final are circa 760 de linii.
+L-am oprit și am aprobat, cu amendamente, o simplificare pe altă ramură: patru tipuri fixe de relații, variantele de propoziții într-un tabel din config, 5 module.
+
+Am oprit codul deoarece era mult prea mare având în vedere că output-ul e doar pe secțiunea E.
+
 
 ## Unde a greșit AI-ul și cum am prins
 
-CLAUDE.md, scris cu Claude în chat, cerea ca o denumire din config care se potrivește pe două rânduri din registru să oprească tot draftul. Claude Code a notat în plan costul (un registru cu eticheta veche și cu cea nouă pentru diversificare oprește rularea), dar a recomandat regula "așa cum cere specificația". Am prins-o când am trecut prin plan decizie cu decizie, împreună cu Claude în chat: programul rulează neschimbat pe alt registru, iar o problemă din registru nu e o eroare de config. Acum cifra afectată devine gol și draftul merge mai departe. Tot atunci am adus la zero toleranța de 0,05 mil. lei pe sume.
+CLAUDE.md, scris cu ajutorul AI, avea regula: dacă o denumire alternativă din config prinde două rânduri în registru, verificarea config-ului pică și nu se mai scrie niciun draft.
 
-A doua greșeală a prins-o revizuirea de cod independentă pe care o cerusem în prompt pentru final. Revizorul a găsit că o cifră verificată față de o cifră aflată în conflict trecea drept "ok", iar tabelul de mutații nu vedea asta. Pe tabelul extins cu cazurile lui, fără corectură apar 14 cifre greșite în text; cu corectura, zero.
+Am prins-o la primul punct de oprire din Claude Code, când am revizuit planul împreună cu Claude din chat. 
+
+Regula trata ca eroare de config o problemă care vine din registru. 
+
+Programul va fi rulat pe un alt registru 2025, iar un registru cu ambele etichete pentru diversificare, cea veche și cea nouă, ar fi oprit tot raportul.
+
 
 ## O decizie păstrată pentru mine
 
-Rata de solvabilitate: registrul spune 187,4 %, ca în 2024, iar calculul dă 197,4 %. Nu am lăsat niciun AI să aleagă și nu am ales nici eu: alegerea ține de CFO și de actuariat, iar o decizie din config cere doi oameni diferiți. Până atunci, rata rămâne gol.
+Programul nu generează text. 
 
-Tot pentru mine am păstrat confirmarea faptelor și aprobarea textului, iar Claude Code avea interdicție să le scrie. Când modificările mele în config nu se salvaseră, a refuzat să le completeze în locul meu. Le-am dictat apoi, iar commit-ul spune că le-am decis eu după diff. Textul l-am aprobat doar dacă diff-ul față de aprobarea anterioară conținea numai linia nouă; așa a ieșit la iveală un spațiu șters din greșeală de Claude Code.
+Toate textele, de la A.1 la E.2, vor veni din șabloane aprobate de oameni (în livrare există doar cel pentru E), pentru că formulările se pot schimba prin legislație, prin regulile UE despre algoritmi sau prin schimbări în companie. 
+
+Programul completează doar cifrele și anii, alege direcția dintr-o listă închisă ("în creștere", "în scădere"), cu mărimea schimbării ("în scădere cu 2,1 % față de 151,9 mil. lei"), și alege între variante de propoziții scrise de oameni.
+
+Singurul text pe care îl scrie singur e golul [de completat: motiv], cu motivul luat din config.
 
 ## Ce n-aș lăsa niciodată AI-ul să facă singur
 
-Să pună în raport cifre, direcții, cauze sau formulări, să aleagă între două surse care nu se potrivesc, să confirme un fapt sau să aprobe un șablon ori o decizie. De aceea programul nu folosește niciun LLM: orice cuvânt din raport vine dintr-un șablon aprobat de un om sau dintr-o cifră ori un fapt cu sursă.
+Să pună în raport cifre, direcții, cauze sau formulări, să aleagă între surse care nu se potrivesc, să confirme un fapt ori să aprobe un șablon sau o decizie. 
+
+De aceea programul nu folosește niciun LLM: fiecare cuvânt din raport vine dintr-un șablon aprobat de un om, din lista închisă de direcții sau dintr-o cifră ori un fapt cu sursă.
