@@ -16,6 +16,7 @@ GAP_REASONS = (
     "sheet_not_found", "header_not_found", "label_not_found", "label_not_unique", "unit_unknown",
     "formula_no_value", "value_text", "value_missing", "value_missing_note",
     "fact_unconfirmed", "fact_not_found",
+    "conflict", "same_as_prior", "unverified", "decision_gap", "decision_stale",
 )
 
 # Required fields of each kind of entry, and of settings.toml.

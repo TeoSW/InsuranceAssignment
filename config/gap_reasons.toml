@@ -20,3 +20,10 @@ value_missing_note = "valoarea pentru „{label}” lipsește în {file}, foaia 
 # Facts from documents
 fact_unconfirmed = "afirmația „{statement}” nu a fost confirmată de un om (config/facts.toml)"
 fact_not_found = "citatul pentru „{statement}” nu a fost găsit în {document}, pagina {page}"
+
+# Checks and decisions ({values}: each value with its source, filled when the draft is written)
+conflict = "pentru „{label}” sursele sau verificările nu se potrivesc ({values}); este nevoie de o decizie în config/decisions.toml"
+same_as_prior = "„{label}” are exact aceeași valoare ca în {prior_year} ({prior_source}); este nevoie de o decizie care să confirme că nu a fost copiată"
+unverified = "„{label}” nu poate fi verificată, pentru că lipsește {missing}"
+decision_gap = "„{label}” rămâne necompletată prin decizia din {date}, aprobată de {approved_by}: {reason}"
+decision_stale = "valorile pentru „{label}” s-au schimbat după decizia din {date}; decizia nu se mai aplică"
