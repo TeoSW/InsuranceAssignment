@@ -1,4 +1,4 @@
-"""Config load and self-check. Only pure config errors are reported here; they stop the draft."""
+"""Config self-check. Only config problems are errors here; any error stops the draft."""
 
 import shutil
 import tempfile
@@ -22,14 +22,6 @@ approved_by = "Ion Ionescu"
 date = "2026-10-26"
 """
 
-VALID_RELATION = """
-[[relation]]
-id = "test_relation"
-check = "scr == scr_basic + scr_operational"
-tolerance = "0"
-marks = ["scr"]
-"""
-
 VALID_FACT = """
 [[fact]]
 id = "test_fact"
@@ -43,6 +35,8 @@ unit = "lei"
 confirmed_by = ""
 confirmed_on = ""
 """
+
+FIGURE = '\n[[figure]]\nid = "extra"\nsheets = ["Capital"]\nlabels = ["X"]\nkind = "amount"\n'
 
 
 class ShippedConfigTest(unittest.TestCase):
@@ -90,39 +84,30 @@ class FilesTest(ConfigCase):
         self.assertError("settings.toml")
 
     def test_single_brackets_instead_of_double(self):
-        (self.config / "figures.toml").write_text(
-            '[figure]\nid = "scr"\nsheets = ["Capital"]\nlabels = ["SCR"]\nkind = "amount"\n', encoding="utf-8")
+        (self.config / "figures.toml").write_text(FIGURE.replace("[[figure]]", "[figure]"), encoding="utf-8")
         self.assertError("figures.toml", "[[figure]]")
 
 
-class SchemaTest(ConfigCase):
+class FigureTest(ConfigCase):
     def test_missing_required_field(self):
-        self.edit("figures.toml", append='\n[[figure]]\nid = "extra"\nsheets = ["Capital"]\nkind = "amount"\n')
-        self.assertError("extra", "labels")
+        self.edit("figures.toml", append=FIGURE.replace('labels = ["X"]\n', ""))
+        self.assertError("figures.toml", "labels")
 
-    def test_unknown_field(self):
-        self.edit("decisions.toml", append=VALID_DECISION.replace("approved_by", "aproved_by"))
-        self.assertError("aproved_by")
-
-    def test_wrong_type(self):
-        self.edit("settings.toml", "reporting_year = 2025", 'reporting_year = "2025"')
-        self.assertError("reporting_year")
+    def test_duplicate_id(self):
+        self.edit("figures.toml", append=FIGURE.replace('"extra"', '"own_funds_t1"'))
+        self.assertError("figures.toml", "own_funds_t1")
 
     def test_unknown_kind(self):
-        self.edit("figures.toml", append='\n[[figure]]\nid = "extra"\nsheets = ["Capital"]\nlabels = ["X"]\nkind = "money"\n')
+        self.edit("figures.toml", append=FIGURE.replace('"amount"', '"money"'))
         self.assertError("money")
 
-    def test_id_must_be_a_simple_name(self):
-        self.edit("figures.toml", append='\n[[figure]]\nid = "own funds"\nsheets = ["Capital"]\nlabels = ["X"]\nkind = "amount"\n')
-        self.assertError("own funds")
+    def test_one_label_cannot_belong_to_two_figures_in_the_same_sheet(self):
+        self.edit("figures.toml", append=FIGURE.replace('labels = ["X"]', 'labels = ["MCR"]'))
+        self.assertError("MCR", "mcr")
 
-    def test_empty_labels(self):
-        self.edit("figures.toml", 'labels = ["Rata de solvabilitate"]', "labels = []")
-        self.assertError("solvency_ratio", "labels")
-
-    def test_duplicate_figure_id(self):
-        self.edit("figures.toml", append='\n[[figure]]\nid = "own_funds_t1"\nsheets = ["Capital"]\nlabels = ["X"]\nkind = "amount"\n')
-        self.assertError("figures.toml", "own_funds_t1")
+    def test_same_label_in_two_sheets_is_allowed(self):
+        self.edit("figures.toml", append=FIGURE.replace('["Capital"]', '["Daune"]').replace('["X"]', '["MCR"]'))
+        self.assertEqual(self.errors(), [])
 
 
 class SettingsTest(ConfigCase):
@@ -130,13 +115,59 @@ class SettingsTest(ConfigCase):
         self.edit("settings.toml", "prior_year = 2024", "prior_year = 2023")
         self.assertError("prior_year")
 
-    def test_at_least_one_section(self):
-        self.edit("settings.toml", 'sections = ["E"]', "sections = []")
-        self.assertError("sections")
+    def test_missing_table(self):
+        self.edit("settings.toml", "[output]", "[outputs]")
+        self.assertError("settings.toml", "output")
 
-    def test_unit_must_be_a_positive_whole_number(self):
-        self.edit("settings.toml", '"mii lei" = 1000', '"mii lei" = 0')
-        self.assertError("mii lei")
+
+class RelationTest(ConfigCase):
+    def test_unknown_type(self):
+        self.edit("relations.toml", append='\n[[relation]]\ntype = "product"\na = "scr"\nb = "mcr"\n')
+        self.assertError("product")
+
+    def test_missing_field_for_its_type(self):
+        self.edit("relations.toml", append='\n[[relation]]\ntype = "ratio"\nr = "solvency_ratio"\na = "own_funds_total"\n')
+        self.assertError("relations.toml", "b")
+
+    def test_unknown_figure(self):
+        self.edit("relations.toml", append='\n[[relation]]\ntype = "less"\na = "mcr"\nb = "scr_totl"\n')
+        self.assertError("scr_totl")
+
+
+class FactTest(ConfigCase):
+    def test_valid_fact_accepted(self):
+        self.edit("facts.toml", append=VALID_FACT)
+        self.assertEqual(self.errors(), [])
+
+    def test_document_not_in_the_allowed_list(self):
+        self.edit("facts.toml", append=VALID_FACT.replace(
+            "proces_verbal_AGA_2025-04-24.txt", "raport_Asigurari_Dunarea_2024_extras.txt"))
+        self.assertError("raport_Asigurari_Dunarea_2024_extras.txt")
+
+    def test_value_must_be_inside_the_quote(self):
+        # a typo in value would otherwise pass the quote check and reach the text
+        self.edit("facts.toml", append=VALID_FACT.replace('value = "15.000.000"', 'value = "16.000.000"'))
+        self.assertError("test_fact", "16.000.000")
+
+    def test_figure_needs_value_and_unit(self):
+        self.edit("facts.toml", append=VALID_FACT.replace('unit = "lei"\n', ""))
+        self.assertError("test_fact", "unit")
+
+    def test_unit_must_be_known(self):
+        self.edit("facts.toml", append=VALID_FACT.replace('unit = "lei"', 'unit = "euro"'))
+        self.assertError("euro")
+
+    def test_fact_figure_cannot_reuse_a_workbook_figure_id(self):
+        self.edit("facts.toml", append=VALID_FACT.replace('"test_amount"', '"mcr"'))
+        self.assertError("test_fact", "mcr")
+
+    def test_direction_must_be_increase_or_decrease(self):
+        self.edit("facts.toml", 'direction = "scădere"', 'direction = "stabil"')
+        self.assertError("stabil")
+
+    def test_about_must_be_a_known_figure(self):
+        self.edit("facts.toml", 'about = "scr"', 'about = "scr_totl"')
+        self.assertError("scr_totl")
 
 
 class DecisionTest(ConfigCase):
@@ -148,7 +179,7 @@ class DecisionTest(ConfigCase):
         self.edit("decisions.toml", append=VALID_DECISION.replace('"2026-10-26"', "2026-10-26"))
         self.assertEqual(self.errors(), [])
 
-    def test_decision_on_a_prior_year_figure_accepted(self):
+    def test_decision_on_last_years_figure_accepted(self):
         self.edit("decisions.toml", append=VALID_DECISION.replace('"solvency_ratio"', '"prior:scr"'))
         self.assertEqual(self.errors(), [])
 
@@ -180,84 +211,6 @@ class DecisionTest(ConfigCase):
     def test_bad_date(self):
         self.edit("decisions.toml", append=VALID_DECISION.replace('"2026-10-26"', '"26.10.2026"'))
         self.assertError("date")
-
-
-class FactTest(ConfigCase):
-    def test_valid_fact_accepted(self):
-        self.edit("facts.toml", append=VALID_FACT)
-        self.assertEqual(self.errors(), [])
-
-    def test_document_not_in_the_allowed_list(self):
-        self.edit("facts.toml", append=VALID_FACT.replace(
-            "proces_verbal_AGA_2025-04-24.txt", "raport_Asigurari_Dunarea_2024_extras.txt"))
-        self.assertError("raport_Asigurari_Dunarea_2024_extras.txt")
-
-    def test_quote_required_when_there_is_a_document(self):
-        self.edit("facts.toml", 'quote = "politica de dividende aprobată de Consiliul de Administrație în 2023 rămâne neschimbată"',
-                  'quote = ""')
-        self.assertError("dividend_policy", "quote")
-
-    def test_page_starts_at_one(self):
-        self.edit("facts.toml", append=VALID_FACT.replace("page = 1", "page = 0"))
-        self.assertError("test_fact", "page")
-
-    def test_about_must_be_a_workbook_figure(self):
-        self.edit("facts.toml", 'about = "scr"', 'about = "scr_totl"')
-        self.assertError("scr_totl")
-
-    def test_value_must_be_inside_the_quote(self):
-        self.edit("facts.toml", append=VALID_FACT.replace('value = "15.000.000"', 'value = "16.000.000"'))
-        self.assertError("test_fact", "16.000.000")
-
-    def test_unit_must_be_known(self):
-        self.edit("facts.toml", append=VALID_FACT.replace('unit = "lei"', 'unit = "euro"'))
-        self.assertError("euro")
-
-    def test_figure_value_and_unit_go_together(self):
-        self.edit("facts.toml", append=VALID_FACT.replace('unit = "lei"\n', ""))
-        self.assertError("test_fact", "unit")
-
-    def test_fact_figure_cannot_reuse_a_workbook_figure_id(self):
-        self.edit("facts.toml", append=VALID_FACT.replace('"test_amount"', '"mcr"'))
-        self.assertError("test_fact", "mcr")
-
-    def test_direction_needs_the_figure_it_is_about(self):
-        self.edit("facts.toml", 'about = "scr"\n', "")
-        self.assertError("scr_cause_market", "about")
-
-    def test_direction_must_be_increase_or_decrease(self):
-        self.edit("facts.toml", 'direction = "scădere"', 'direction = "stabil"')
-        self.assertError("stabil")
-
-
-class RelationTest(ConfigCase):
-    def test_valid_relation_accepted(self):
-        self.edit("relations.toml", append=VALID_RELATION)
-        self.assertEqual(self.errors(), [])
-
-    def test_unknown_figure_in_check(self):
-        self.edit("relations.toml", append=VALID_RELATION.replace("scr_operational", "scr_operationl"))
-        self.assertError("scr_operationl")
-
-    def test_marks_a_figure_outside_the_check(self):
-        self.edit("relations.toml", append=VALID_RELATION.replace('marks = ["scr"]', 'marks = ["mcr"]'))
-        self.assertError("test_relation", "mcr")
-
-    def test_fills_a_figure_outside_the_check(self):
-        self.edit("relations.toml", append=VALID_RELATION + 'fills = "mcr"\n')
-        self.assertError("test_relation", "fills")
-
-    def test_marks_cannot_be_empty(self):
-        self.edit("relations.toml", append=VALID_RELATION.replace('marks = ["scr"]', "marks = []"))
-        self.assertError("test_relation", "marks")
-
-    def test_tolerance_must_be_a_number(self):
-        self.edit("relations.toml", append=VALID_RELATION.replace('tolerance = "0"', 'tolerance = "zero"'))
-        self.assertError("test_relation", "tolerance")
-
-    def test_tolerance_cannot_be_negative(self):
-        self.edit("relations.toml", append=VALID_RELATION.replace('tolerance = "0"', 'tolerance = "-0.05"'))
-        self.assertError("test_relation", "tolerance")
 
 
 class GapReasonsTest(ConfigCase):

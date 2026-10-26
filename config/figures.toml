@@ -56,7 +56,8 @@ sheets = ["Capital"]
 labels = ["Rata de solvabilitate"]
 kind = "percent"
 
-# SCR components (sheet "SCR_module"); used to check the SCR, not shown in section E
+# SCR components (sheet "SCR_module"); used to check the SCR, not shown in section E.
+# The same label may be used in two sheets ("SCR"), but never by two figures in the same sheet.
 
 [[figure]]
 id = "scr_underwriting"
@@ -93,4 +94,10 @@ kind = "amount"
 id = "scr_operational"
 sheets = ["SCR_module"]
 labels = ["Risc operațional"]
+kind = "amount"
+
+[[figure]]
+id = "scr_in_modules"               # the SCR at the bottom of SCR_module; must equal "scr" in Capital
+sheets = ["SCR_module"]
+labels = ["SCR"]
 kind = "amount"

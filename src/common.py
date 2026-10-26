@@ -10,14 +10,6 @@ CEDILLA_TO_COMMA = str.maketrans({"ş": "ș", "Ş": "Ș", "ţ": "ț", "Ţ": "Ț"
 # Decimals shown in the report, per kind of figure (report rule 5).
 DECIMALS = {"amount": 1, "percent": 1, "count": 0}
 
-# Every gap reason the program can give. config/gap_reasons.toml must have a text for each.
-GAP_REASONS = (
-    "file_missing", "file_unreadable", "unexpected_error",
-    "sheet_not_found", "header_not_found", "label_not_found", "label_not_unique", "unit_unknown",
-    "formula_no_value", "value_text", "value_missing", "value_missing_note",
-    "fact_unconfirmed", "fact_not_found",
-)
-
 
 def normalize_text(text):
     """Comma-below ș and ț, one space between words, no spaces at the ends."""

@@ -15,7 +15,7 @@
 # Optional fields:
 #   about         a figure whose change this fact explains
 #   direction     "creștere" or "scădere": must match the calculated direction of `about`
-#   explains_gap  a figure; when that figure is a gap, this statement is added to the reason
+#   explains      a figure; when that figure is a gap, this statement is added to its reason
 #   figure        this fact supplies a figure with this id ...
 #   value         ... whose value is this number, written exactly as in the quote ...
 #   unit          ... in this unit (from settings.toml [units])
@@ -70,7 +70,7 @@ statement = "calculul MCR nu este finalizat, conform notei funcției actuariale 
 document = "nota_functia_actuariala_2026-02-02.docx"
 page = 1
 quote = "Calculul cerinței de capital minim este în curs de finalizare și va fi transmis separat."
-explains_gap = "mcr"
+explains = "mcr"
 confirmed_by = ""
 confirmed_on = ""
 
