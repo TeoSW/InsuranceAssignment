@@ -4,6 +4,7 @@ load_config returns the config and a list of errors. Any error stops the run bef
 written. Only config problems are checked here; problems in the workbook become gaps later.
 """
 
+import re
 import tomllib
 from datetime import date
 from pathlib import Path
@@ -17,7 +18,10 @@ GAP_REASONS = (
     "formula_no_value", "value_text", "value_missing", "value_missing_note",
     "fact_unconfirmed", "fact_not_found",
     "conflict", "same_as_prior", "unverified", "decision_gap", "decision_stale",
+    "change_from_zero", "fact_explains",
 )
+# A placeholder in a sentence: {X}, {prior:X}, {direction:X}, {change:X}, {year}, {prior_year}.
+PLACEHOLDER = re.compile(r"\{(?:(prior|direction|change):)?(\w+)\}")
 
 # Required fields of each kind of entry, and of settings.toml.
 REQUIRED = {
@@ -25,6 +29,7 @@ REQUIRED = {
     "relation": ["type"],
     "fact": ["id", "statement", "document", "page", "quote", "confirmed_by", "confirmed_on"],
     "decision": ["figure", "values", "chosen", "source", "reason", "proposed_by", "approved_by", "date"],
+    "sentence": ["id", "text"],
     "settings": ["reporting_year", "prior_year", "sections", "workbooks", "documents", "reading", "units",
                  "words", "format", "decisions", "output"],
 }
@@ -46,7 +51,7 @@ def figures_in(relation):
 def load_config(folder):
     """Read config/*.toml and run the self-check. Returns (config, errors)."""
     cfg, errors = {}, []
-    for name in ("settings", "figures", "relations", "facts", "decisions", "gap_reasons"):
+    for name in ("settings", "figures", "relations", "facts", "decisions", "gap_reasons", "sentences", "approvals"):
         try:
             with open(Path(folder) / f"{name}.toml", "rb") as file:
                 cfg[name] = tomllib.load(file)
@@ -55,7 +60,14 @@ def load_config(folder):
     if errors:
         return cfg, errors
     errors += missing_fields(cfg["settings"], "settings", "settings.toml")
-    for name, key in (("figures", "figure"), ("relations", "relation"), ("facts", "fact"), ("decisions", "decision")):
+    cfg["templates"] = {}
+    for section in cfg["settings"].get("sections", []):
+        try:
+            cfg["templates"][section] = (Path(folder) / "templates" / f"{section}.md").read_text(encoding="utf-8")
+        except OSError as error:
+            errors.append(f"config/templates/{section}.md nu poate fi citit: {error}")
+    for name, key in (("figures", "figure"), ("relations", "relation"), ("facts", "fact"), ("decisions", "decision"),
+                      ("sentences", "sentence")):
         cfg[name] = cfg[name].get(key, [])
         if not isinstance(cfg[name], list):
             errors.append(f"{name}.toml: fiecare intrare se scrie [[{key}]]")
@@ -72,6 +84,7 @@ def load_config(folder):
     errors += check_relations(cfg["relations"], ids)
     errors += check_facts(cfg["facts"], cfg["settings"], workbook_ids, ids)
     errors += check_decisions(cfg["decisions"], ids, cfg["settings"])
+    errors += check_sentences(cfg["sentences"], cfg["templates"], ids, cfg["facts"])
     errors += [f"gap_reasons.toml: lipsește motivul „{name}”" for name in GAP_REASONS if name not in cfg["gap_reasons"]]
     return cfg, errors
 
@@ -164,4 +177,34 @@ def check_decisions(decisions, ids, settings):
             date.fromisoformat(str(decision["date"]))
         except ValueError:
             errors.append(f"{here}: date trebuie scrisă AAAA-LL-ZZ")
+    return errors
+
+
+def check_sentences(sentences, templates, ids, facts):
+    """Template placeholders are sentences; every sentence ends with a fallback (no condition, no direction);
+    direction and change only where the condition guarantees a visible change; known figures and facts."""
+    errors, variants, facts = [], {}, {fact["id"]: fact for fact in facts}
+    for sentence in sentences:
+        variants.setdefault(sentence["id"], []).append(sentence)
+    for section, text in templates.items():
+        errors += [f"templates/{section}.md: „{name}” nu este o propoziție din sentences.toml"
+                   for prefix, name in PLACEHOLDER.findall(text) if prefix or name not in variants]
+    for sentence_id, group in variants.items():
+        here = f"sentences.toml, „{sentence_id}”"
+        if "when" in group[-1] or "{direction:" in group[-1]["text"] or "{change:" in group[-1]["text"]:
+            errors.append(f"{here}: ultima variantă trebuie să fie fără condiție (when) și fără direction/change")
+        for variant in group:
+            when = variant.get("when", "").split()
+            if when and not (len(when) == 2 and when[0] == "changed" and when[1] in ids
+                             or len(when) == 2 and when[0] == "fact" and when[1] in facts
+                             or len(when) == 3 and when[0] in ids and when[1] in ("==", ">") and when[2] == "0"):
+                errors.append(f"{here}: condiția „{variant['when']}” nu se înțelege")
+            for prefix, name in PLACEHOLDER.findall(variant["text"]):
+                if name not in ids and (prefix or name not in ("year", "prior_year")):
+                    errors.append(f"{here}: „{name}” nu este o cifră cunoscută")
+                guaranteed = when == ["changed", name] or (when[:1] == ["fact"] and facts.get(when[-1], {}).get("about") == name)
+                if prefix in ("direction", "change") and not guaranteed:
+                    errors.append(f"{here}: {{{prefix}:{name}}} poate apărea doar într-o variantă „changed {name}” "
+                                  f"sau „fact ...” despre {name}")
+            errors += [f"{here}: faptul „{name}” nu există" for name in variant.get("needs", []) if name not in facts]
     return errors

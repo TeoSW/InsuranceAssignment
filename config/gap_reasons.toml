@@ -27,3 +27,7 @@ same_as_prior = "„{label}” are exact aceeași valoare ca în {prior_year} ({
 unverified = "„{label}” nu poate fi verificată, pentru că lipsește {missing}"
 decision_gap = "„{label}” rămâne necompletată prin decizia din {date}, aprobată de {approved_by}: {reason}"
 decision_stale = "valorile pentru „{label}” s-au schimbat după decizia din {date}; decizia nu se mai aplică"
+
+# Writing the text
+change_from_zero = "schimbarea pentru „{label}” nu se poate calcula în procente: valoarea de comparație este zero"
+fact_explains = "{statement} ({document})"

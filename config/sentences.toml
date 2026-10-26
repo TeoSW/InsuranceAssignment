@@ -1,0 +1,72 @@
+# sentences.toml: the sentences of the report, with their variants. Written and approved by people;
+# the program only picks a variant and fills its placeholders. Wording kept from the 2024 report.
+#
+# templates/E.md places a sentence with {its id}. For each id, the first variant whose condition
+# holds is used. The last variant of every id has no condition (the fallback) and no direction or change.
+#
+# Fields of each [[sentence]]:
+#   id     the placeholder in the template
+#   when   optional condition:
+#            "X == 0" or "X > 0"   figure X is zero / above zero
+#            "changed X"           X's displayed value differs from last year's
+#            "fact F"              fact F is confirmed, its quote is found, and its direction matches
+#   needs  optional: facts that must be confirmed and found, or the whole sentence becomes a gap
+#   text   the sentence. Placeholders: {X} a figure; {prior:X} last year's value, as a comparison;
+#          {direction:X} and {change:X} only in a "changed X" or "fact F" variant; {year}, {prior_year}
+# If a figure or a needed fact is missing, the whole sentence becomes one gap, with its reasons.
+
+# E.1 Fonduri proprii
+
+[[sentence]]
+id = "E1_own_funds"
+when = "own_funds_t3 == 0"
+text = "La 31 decembrie {year}, fondurile proprii eligibile pentru acoperirea cerinței de capital de solvabilitate (SCR) au fost de {own_funds_total}, din care fonduri proprii de nivel 1 de {own_funds_t1} și fonduri proprii de nivel 2 de {own_funds_t2}. Societatea nu a deținut fonduri proprii de nivel 3."
+
+[[sentence]]
+id = "E1_own_funds"
+text = "La 31 decembrie {year}, fondurile proprii eligibile pentru acoperirea cerinței de capital de solvabilitate (SCR) au fost de {own_funds_total}, din care fonduri proprii de nivel 1 de {own_funds_t1}, fonduri proprii de nivel 2 de {own_funds_t2} și fonduri proprii de nivel 3 de {own_funds_t3}."
+
+[[sentence]]
+id = "E1_legal_basis"
+needs = ["legal_basis"]
+text = "Fondurile proprii sunt clasificate conform Regulamentului delegat (UE) 2015/35 și Legii nr. 237/2015 privind autorizarea și supravegherea activității de asigurare și reasigurare, aplicabile Societății începând cu 1 ianuarie 2016."
+
+[[sentence]]
+id = "E1_dividends"
+needs = ["dividend_policy"]
+text = "În cursul anului {year}, Societatea a plătit dividende de {dividends_paid}, conform politicii de dividende aprobate de Consiliul de Administrație."
+
+# E.2 Cerința de capital de solvabilitate și cerința de capital minim
+# The 2024 cause ("creșterea volumului de prime brute subscrise") is not a variant: no 2025 document supports it.
+
+[[sentence]]
+id = "E2_scr"
+when = "fact scr_cause_market"
+text = "La 31 decembrie {year}, SCR a fost de {scr}, {direction:scr} cu {change:scr} față de {prior:scr} la sfârșitul anului {prior_year}, în principal ca urmare a scăderii riscului de piață."
+
+[[sentence]]
+id = "E2_scr"
+when = "changed scr"
+text = "La 31 decembrie {year}, SCR a fost de {scr}, {direction:scr} cu {change:scr} față de {prior:scr} la sfârșitul anului {prior_year}."
+
+[[sentence]]
+id = "E2_scr"
+text = "La 31 decembrie {year}, SCR a fost de {scr}."
+
+[[sentence]]
+id = "E2_ratio"
+text = "Rata de solvabilitate a fost de {solvency_ratio}."
+
+[[sentence]]
+id = "E2_mcr"
+when = "fact mcr_covered"
+text = "Cerința de capital minim (MCR) a fost de {mcr} și a fost acoperită integral."
+
+[[sentence]]
+id = "E2_mcr"
+text = "Cerința de capital minim (MCR) a fost de {mcr}."
+
+[[sentence]]
+id = "E2_standard_formula"
+needs = ["standard_formula"]
+text = "Societatea calculează SCR folosind formula standard și nu utilizează parametri specifici proprii."

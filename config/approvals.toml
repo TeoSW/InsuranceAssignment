@@ -1,0 +1,7 @@
+# approvals.toml: who approved the wording of each section, and when. Written only by people.
+# The approval covers templates/<section>.md and that section's sentences in sentences.toml.
+# A section without approved_by and approved_on is drawn with a "not approved" line on top.
+
+[E]
+approved_by = ""     # who approved the wording ("" = not approved)
+approved_on = ""     # "YYYY-MM-DD"

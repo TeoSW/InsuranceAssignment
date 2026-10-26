@@ -213,6 +213,29 @@ class DecisionTest(ConfigCase):
         self.assertError("date")
 
 
+class SentenceTest(ConfigCase):
+    def test_template_placeholder_must_be_a_sentence(self):
+        self.edit("templates/E.md", append="\n{E2_unknown}\n")
+        self.assertError("E2_unknown")
+
+    def test_every_sentence_ends_with_a_fallback_without_condition(self):
+        self.edit("sentences.toml", 'id = "E2_ratio"\ntext', 'id = "E2_ratio"\nwhen = "changed solvency_ratio"\ntext')
+        self.assertError("E2_ratio")
+
+    def test_direction_only_in_a_changed_or_fact_variant(self):
+        self.edit("sentences.toml", append='\n[[sentence]]\nid = "E2_extra"\nwhen = "mcr > 0"\ntext = "{direction:scr}"\n'
+                                           '\n[[sentence]]\nid = "E2_extra"\ntext = "x"\n')
+        self.assertError("E2_extra", "direction")
+
+    def test_condition_must_be_understood(self):
+        self.edit("sentences.toml", 'when = "own_funds_t3 == 0"', 'when = "own_funds_t3 is zero"')
+        self.assertError("own_funds_t3 is zero")
+
+    def test_needed_fact_must_exist(self):
+        self.edit("sentences.toml", 'needs = ["standard_formula"]', 'needs = ["standard_formulae"]')
+        self.assertError("standard_formulae")
+
+
 class GapReasonsTest(ConfigCase):
     def test_every_reason_the_program_uses_has_a_text(self):
         self.edit("gap_reasons.toml", 'file_missing = "fișierul {file} nu există în folderul din care rulează programul"\n', "")
