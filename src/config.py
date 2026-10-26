@@ -12,14 +12,9 @@ from pathlib import Path
 from read import label_key, normalize
 
 # Every gap reason the program can give. config/gap_reasons.toml must have a text for each.
-GAP_REASONS = (
-    "file_missing", "file_unreadable", "unexpected_error",
-    "sheet_not_found", "header_not_found", "label_not_found", "label_not_unique", "unit_unknown",
-    "formula_no_value", "value_text", "value_missing", "value_missing_note",
-    "fact_unconfirmed", "fact_not_found",
-    "conflict", "same_as_prior", "unverified", "decision_gap", "decision_stale",
-    "change_from_zero", "fact_explains",
-)
+GAP_REASONS = """file_missing file_unreadable unexpected_error sheet_not_found header_not_found label_not_found
+label_not_unique unit_unknown formula_no_value value_text value_missing value_missing_note fact_unconfirmed
+fact_not_found conflict same_as_prior unverified decision_gap decision_stale change_from_zero fact_explains""".split()
 # A placeholder in a sentence: {X}, {prior:X}, {direction:X}, {change:X}, {year}, {prior_year}.
 PLACEHOLDER = re.compile(r"\{(?:(prior|direction|change):)?(\w+)\}")
 
@@ -40,12 +35,9 @@ DIRECTIONS = ("creștere", "scădere")
 
 
 def figures_in(relation):
-    """The figure ids a relation names."""
-    ids = []
-    for name in ("total", "parts", "minus", "a", "b", "r"):
-        value = relation.get(name, [])
-        ids += value if isinstance(value, list) else [value]
-    return ids
+    """The figure ids a relation names: total, parts and minus of a sum; a, b (and r) of the others."""
+    single = [relation[key] for key in ("total", "a", "b", "r") if key in relation]
+    return single[:1] + relation.get("parts", []) + relation.get("minus", []) + single[1:]
 
 
 def load_config(folder):
@@ -79,7 +71,8 @@ def load_config(folder):
 
     workbook_ids = {figure["id"] for figure in cfg["figures"]}
     ids = workbook_ids | {fact["figure"] for fact in cfg["facts"] if "figure" in fact}
-    errors += check_settings(cfg["settings"])
+    if cfg["settings"]["prior_year"] != cfg["settings"]["reporting_year"] - 1:
+        errors.append("settings.toml: prior_year trebuie să fie reporting_year - 1")
     errors += check_figures(cfg["figures"])
     errors += check_relations(cfg["relations"], ids)
     errors += check_facts(cfg["facts"], cfg["settings"], workbook_ids, ids)
@@ -92,12 +85,6 @@ def load_config(folder):
 def missing_fields(entry, kind, where):
     missing = [name for name in REQUIRED[kind] if name not in entry]
     return [f"{where}: lipsește {', '.join(missing)}"] if missing else []
-
-
-def check_settings(settings):
-    if settings["prior_year"] != settings["reporting_year"] - 1:
-        return ["settings.toml: prior_year trebuie să fie reporting_year - 1"]
-    return []
 
 
 def check_figures(figures):

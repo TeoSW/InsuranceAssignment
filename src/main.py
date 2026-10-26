@@ -12,7 +12,7 @@ from pathlib import Path
 from checks import apply_decisions, as_prior, check_prior_column, check_same_as_prior, run_relations
 from config import load_config
 from read import check_fact, fact_figure, read_workbook
-from render import render_section, write_checks, write_trace
+from render import approval, render_section, write_checks, write_trace
 
 ROOT = Path(__file__).resolve().parent.parent  # src/ is next to date/, config/ and output/
 
@@ -60,8 +60,7 @@ def draft(cfg, folder, output, checks_file):
 
     for section in settings["sections"]:
         text, calculated = render_section(cfg["templates"][section], cfg["sentences"], figures, cfg["facts"], problems, cfg)
-        approval = cfg["approvals"].get(section, {})
-        if not (approval.get("approved_by") and approval.get("approved_on")):
+        if not approval(cfg, section):
             text = settings["words"]["not_approved"] + "\n\n" + text
         name = settings["output"]["draft"].format(section=section, year=settings["reporting_year"])
         (output / name).write_text(text, encoding="utf-8")

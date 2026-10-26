@@ -61,10 +61,9 @@ def read_workbook(path, figures, settings, column="current"):
     try:
         book = openpyxl.load_workbook(path, data_only=True)  # the values as last saved
         formulas = openpyxl.load_workbook(path)  # the same cells, showing their formulas
-    except FileNotFoundError:
-        return {figure["id"]: gap(figure, "file_missing", file=path.name) for figure in figures}, []
-    except Exception as error:  # a damaged or foreign file must not stop the run
-        return {figure["id"]: gap(figure, "file_unreadable", file=path.name, error=error) for figure in figures}, []
+    except Exception as error:  # a missing, damaged or foreign file must not stop the run
+        reason = "file_missing" if isinstance(error, FileNotFoundError) else "file_unreadable"
+        return {figure["id"]: gap(figure, reason, file=path.name, error=error) for figure in figures}, []
     hidden = [(sheet.title, sheet.sheet_state) for sheet in book.worksheets if sheet.sheet_state != "visible"]
     values = {}
     for figure in figures:

@@ -26,10 +26,14 @@ def format_number(value, decimals):
     return english.replace(",", " ").replace(".", ",").replace(" ", ".")
 
 
+def rounded(kind, value):
+    """The number as the report writes it, without its unit: "412,4", "187,4", "18.420"."""
+    return format_number(value * SCALE[kind], DECIMALS[kind])
+
+
 def display(kind, value, formats):
     """A figure as the report shows it: "412,4 mil. lei", "187,4 %", "18.420"."""
-    number = format_number(value * SCALE[kind], DECIMALS[kind])
-    return number if kind == "count" else formats[kind].format(number=number)
+    return rounded(kind, value) if kind == "count" else formats[kind].format(number=rounded(kind, value))
 
 
 def usable(value):
@@ -38,10 +42,7 @@ def usable(value):
 
 def direction(current, prior):
     """"up" or "down", from the unrounded values, only when the displayed values differ; otherwise None."""
-    if not (usable(current) and usable(prior)):
-        return None
-    shown = [format_number(v.value * SCALE[v.kind], DECIMALS[v.kind]) for v in (current, prior)]
-    if shown[0] == shown[1]:
+    if not (usable(current) and usable(prior)) or rounded(current.kind, current.value) == rounded(prior.kind, prior.value):
         return None
     return "up" if current.value > prior.value else "down"
 
@@ -158,37 +159,43 @@ def write_trace(path, figures, cfg):
                              value.label, value.unit, STATUS[value.status], reason])
 
 
+def approval(cfg, section):
+    """"aprobat de X la Y" for a section whose text is approved; None otherwise."""
+    record = cfg["approvals"].get(section, {})
+    if record.get("approved_by") and record.get("approved_on"):
+        return f"aprobat de {record['approved_by']} la {record['approved_on']}"
+    return None
+
+
 def write_checks(path, report, cfg):
     """verificari.md: what was read, checked and decided, so a person can see where every gap comes from."""
-    lines = ["# Verificări"]
     if report.get("errors"):
-        lines += ["", "## Configurația are erori: nu s-a scris niciun draft", ""] + [f"- {e}" for e in report["errors"]]
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        return
-    lines += ["", "## Fișiere de intrare (SHA-256)", ""] + [f"- {name}: {sha}" for name, sha in report["checksums"]]
-    lines += ["", "## Foi ascunse (nu au fost citite)", ""]
-    lines += [f"- {title} ({state})" for title, state in report["hidden"]] or ["- niciuna"]
-    lines += ["", "## Verificări între cifre", ""] + [f"- {line['check']}: {RESULT[line['result']]}" for line in report["checks"]]
-    lines += ["", "## Conflicte (așteaptă o decizie în config/decisions.toml)", ""]
-    lines += [f"- {value.id} („{value.label}”): " + "; ".join(f"`{text}` din {source}" for text, source in value.candidates)
-              for value in report["figures"].values() if value.status == "conflict"] or ["- niciunul"]
-    lines += ["", "## Decizii", ""]
-    for line in report["decisions"]:
-        d = line["decision"]
-        lines.append(f"- {d['figure']}: ales `{d['chosen']}` din {d['values']}; sursa: {d['source']}; motiv: {d['reason']}; "
-                     f"propusă de {d['proposed_by']}, aprobată de {d['approved_by']} la {d['date']}; "
-                     + ("aplicată" if line["applied"] else "NU se aplică (nu există conflictul sau valorile s-au schimbat)"))
-    if not report["decisions"]:
-        lines.append("- niciuna")
-    lines += ["", "## Fapte din documente", ""]
-    for fact in cfg["facts"]:
-        problem = report["problems"][fact["id"]]
-        state = "folosit" if problem is None else cfg["gap_reasons"][problem[0]].format_map(Missing(problem[1]))
-        where = f"{fact['document']}, pagina {fact['page']}" if fact["document"] else "fără document"
-        lines.append(f"- {fact['id']} ({where}; confirmat de: {fact['confirmed_by'] or '-'} {fact['confirmed_on']}): {state}")
-    lines += ["", "## Aprobarea textului", ""]
-    for section in cfg["settings"]["sections"]:
-        approval = cfg["approvals"].get(section, {})
-        approved = approval.get("approved_by") and approval.get("approved_on")
-        lines.append(f"- {section}: " + (f"aprobat de {approval['approved_by']} la {approval['approved_on']}" if approved else "NEAPROBAT"))
+        blocks = [("Configurația are erori: nu s-a scris niciun draft", [f"- {e}" for e in report["errors"]], None)]
+    else:
+        conflicts = [f"- {value.id} („{value.label}”): " + "; ".join(f"`{t}` din {s}" for t, s in value.candidates)
+                     for value in report["figures"].values() if value.status == "conflict"]
+        decisions = []
+        for line in report["decisions"]:
+            d = line["decision"]
+            decisions.append(f"- {d['figure']}: ales `{d['chosen']}` din {d['values']}; sursa: {d['source']}; motiv: {d['reason']}; "
+                             f"propusă de {d['proposed_by']}, aprobată de {d['approved_by']} la {d['date']}; "
+                             + ("aplicată" if line["applied"] else "NU se aplică (nu există conflictul sau valorile s-au schimbat)"))
+        facts = []
+        for fact in cfg["facts"]:
+            problem = report["problems"][fact["id"]]
+            state = "folosit" if problem is None else cfg["gap_reasons"][problem[0]].format_map(Missing(problem[1]))
+            where = f"{fact['document']}, pagina {fact['page']}" if fact["document"] else "fără document"
+            facts.append(f"- {fact['id']} ({where}; confirmat de: {fact['confirmed_by'] or '-'} {fact['confirmed_on']}): {state}")
+        blocks = [
+            ("Fișiere de intrare (SHA-256)", [f"- {name}: {sha}" for name, sha in report["checksums"]], None),
+            ("Foi ascunse (nu au fost citite)", [f"- {title} ({state})" for title, state in report["hidden"]], "- niciuna"),
+            ("Verificări între cifre", [f"- {line['check']}: {RESULT[line['result']]}" for line in report["checks"]], None),
+            ("Conflicte (așteaptă o decizie în config/decisions.toml)", conflicts, "- niciunul"),
+            ("Decizii", decisions, "- niciuna"),
+            ("Fapte din documente", facts, None),
+            ("Aprobarea textului", [f"- {s}: {approval(cfg, s) or 'NEAPROBAT'}" for s in cfg["settings"]["sections"]], None),
+        ]
+    lines = ["# Verificări"]
+    for title, items, empty in blocks:
+        lines += ["", f"## {title}", ""] + (items or ([empty] if empty else []))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
