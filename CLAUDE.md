@@ -37,13 +37,15 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 
 ## Checks, conflicts, decisions
 
-- Relations live in config as seven entries of four fixed types (sum, equal, less, ratio) and are checked before any figure reaches the text:
+- Relations live in config as nine entries of five fixed types (sum, equal, less, ratio, positive) and are checked before any figure reaches the text:
+  - SCR > 0 and MCR > 0 (positive);
   - the tiers add up to total own funds (sum);
   - modules minus diversification (sign handled by label) give the basic SCR (sum);
   - basic SCR plus operational risk give the SCR in SCR_module (sum);
   - the SCR in Capital equals the SCR in SCR_module (equal);
   - the stated ratio equals own funds / SCR (ratio, the only relation with a 0,05 tolerance on the displayed value);
   - MCR < SCR (less);
+  - a relation never confirms figures against a figure already in conflict: the figures it would confirm become gaps;
   - dividends in the financial statements equal the amount approved by the AGA (equal).
 - Last year's SCR equals the figure published in 2024: this year's "an anterior" column must equal last year's workbook.
 - Sums and same-value cross-checks match exactly (tolerance 0); the 0,05 tolerance applies only to a stored rounded value compared with its recalculation (the ratio).

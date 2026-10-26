@@ -6,10 +6,20 @@
 #   type = "equal"  a = b, exactly. If it fails, both become conflicts.
 #   type = "less"   a < b. If it fails, a becomes a conflict.
 #   type = "ratio"  r = a / b, within 0,05 of the displayed percentage. If it fails, r becomes a conflict.
+#   type = "positive"  a > 0. If it fails, a becomes a conflict (a capital requirement of zero is a placeholder).
 #
 # If a figure of a relation is missing, the relation cannot be checked, and the figures a failure
-# would turn into conflicts become gaps instead. Relations run in this order, so a total computed
-# by one sum can be checked by the next relation.
+# would turn into conflicts become gaps instead. The same happens if a figure the relation checks
+# against is already in conflict: a relation never confirms figures against a disputed one.
+# Relations run in this order, so a total computed by one sum can be checked by the next relation.
+
+[[relation]]
+type = "positive"
+a = "scr"
+
+[[relation]]
+type = "positive"
+a = "mcr"
 
 [[relation]]
 type = "sum"

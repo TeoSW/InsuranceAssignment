@@ -66,6 +66,11 @@ def marked(relation):
     return [relation["r"] if relation["type"] == "ratio" else relation["a"]]
 
 
+def inputs(relation):
+    """The figures a relation checks the others against: all of a sum or equal; the rest for ratio, less, positive."""
+    return [name for name in figures_in(relation) if relation["type"] in ("sum", "equal") or name not in marked(relation)]
+
+
 def evaluate(relation, figures):
     """(holds?, {figure id: (the number the other side gives it, source)}) for a relation with all its figures."""
     value = {name: figures[name].value for name in figures_in(relation)}
@@ -79,6 +84,10 @@ def evaluate(relation, figures):
         return value[a] == value[b], {a: (value[b], figures[b].source), b: (value[a], figures[a].source)}
     if relation["type"] == "less":
         return value[relation["a"]] < value[relation["b"]], {}
+    if relation["type"] == "positive":
+        return value[relation["a"]] > 0, {}
+    if value[relation["b"]] == 0:
+        return False, {}  # the ratio cannot be calculated
     calculated = value[relation["a"]] / value[relation["b"]]
     holds = abs(value[relation["r"]] - calculated) * 100 <= RATIO_TOLERANCE
     return holds, {relation["r"]: (calculated, f"calcul: {relation['a']} / {relation['b']}")}
@@ -104,6 +113,15 @@ def run_relations(figures, relations):
                     figures[name].status, figures[name].value = "gap", None
                     figures[name].reason = ("unverified", {"label": figures[name].label or name,
                                                            "missing": ", ".join(missing)})
+            lines.append({"check": description, "result": "not_checked"})
+            continue
+        disputed = [name for name in inputs(relation) if figures[name].status == "conflict"]
+        if disputed:  # a relation cannot confirm figures against a figure in conflict
+            for name in marked(relation):
+                if figures[name].status == "ok":
+                    figures[name].status, figures[name].value = "gap", None
+                    figures[name].reason = ("depends_on_conflict", {"label": figures[name].label or name,
+                                                                    "conflict": ", ".join(disputed)})
             lines.append({"check": description, "result": "not_checked"})
             continue
         holds, others = evaluate(relation, figures)

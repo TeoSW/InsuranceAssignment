@@ -14,7 +14,8 @@ from read import label_key, normalize
 # Every gap reason the program can give. config/gap_reasons.toml must have a text for each.
 GAP_REASONS = """file_missing file_unreadable unexpected_error sheet_not_found header_not_found label_not_found
 label_not_unique unit_unknown formula_no_value value_text value_missing value_missing_note fact_unconfirmed
-fact_not_found conflict same_as_prior unverified decision_gap decision_stale change_from_zero fact_explains""".split()
+fact_not_found conflict same_as_prior unverified depends_on_conflict decision_gap decision_stale change_from_zero
+fact_explains""".split()
 # A placeholder in a sentence: {X}, {prior:X}, {direction:X}, {change:X}, {year}, {prior_year}.
 PLACEHOLDER = re.compile(r"\{(?:(prior|direction|change):)?(\w+)\}")
 
@@ -29,7 +30,8 @@ REQUIRED = {
                  "words", "format", "decisions", "output"],
 }
 # The fields that name figures, for each type of relation ("minus" is optional).
-RELATION_FIELDS = {"sum": ["total", "parts"], "equal": ["a", "b"], "less": ["a", "b"], "ratio": ["r", "a", "b"]}
+RELATION_FIELDS = {"sum": ["total", "parts"], "equal": ["a", "b"], "less": ["a", "b"], "ratio": ["r", "a", "b"],
+                   "positive": ["a"]}
 KINDS = ("amount", "percent", "count")
 DIRECTIONS = ("creștere", "scădere")
 

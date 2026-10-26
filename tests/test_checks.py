@@ -39,6 +39,8 @@ SUM_SCR = {"type": "sum", "total": "scr_in_modules", "parts": ["scr_basic", "scr
 EQUAL_SCR = {"type": "equal", "a": "scr", "b": "scr_in_modules"}
 RATIO = {"type": "ratio", "r": "solvency_ratio", "a": "own_funds_total", "b": "scr"}
 LESS = {"type": "less", "a": "mcr", "b": "scr"}
+POSITIVE_SCR = {"type": "positive", "a": "scr"}
+POSITIVE_MCR = {"type": "positive", "a": "mcr"}
 
 
 def modules(basic="135493000", diversification="22431900"):
@@ -128,6 +130,46 @@ class EqualLessRatioTest(unittest.TestCase):
         figures = {"mcr": missing("mcr"), "scr": amount("scr", "148763200")}
         run_relations(figures, [LESS])
         self.assertEqual(figures["scr"].status, "ok")
+
+
+class ConflictSpreadsTest(unittest.TestCase):
+    """A relation cannot confirm figures against a figure that is already in conflict."""
+
+    def test_a_module_changed_without_its_totals_keeps_the_scr_out_of_the_text(self):
+        figures = dict(modules(), scr=amount("scr", "148763200"))
+        figures["scr_market"] = amount("scr_market", "51902600")  # +10.000 mii lei, totals unchanged
+        run_relations(figures, [SUM_BASIC, SUM_SCR, EQUAL_SCR])
+        self.assertEqual(figures["scr_basic"].status, "conflict")
+        self.assertEqual((figures["scr_in_modules"].status, figures["scr_in_modules"].reason[0]),
+                         ("gap", "depends_on_conflict"))
+        self.assertEqual(figures["scr"].status, "gap")
+
+    def test_a_ratio_checked_against_a_total_in_conflict_is_not_confirmed(self):
+        figures = tiers(t1="272449600")  # tier 1 +10 m, total unchanged
+        figures.update(solvency_ratio=ratio("1.974274"), scr=amount("scr", "148763200"))
+        run_relations(figures, [SUM_TIERS, RATIO])
+        self.assertEqual(figures["own_funds_total"].status, "conflict")
+        self.assertEqual((figures["solvency_ratio"].status, figures["solvency_ratio"].reason[0]),
+                         ("gap", "depends_on_conflict"))
+
+    def test_the_figure_being_checked_may_itself_be_in_conflict(self):
+        # the 2025 ratio is already a conflict (identical to 2024): it is still compared with the calculation
+        figures = {"solvency_ratio": ratio("1.874"), "own_funds_total": amount("own_funds_total", "293699300"),
+                   "scr": amount("scr", "148763200")}
+        figures["solvency_ratio"].status = "conflict"
+        run_relations(figures, [RATIO])
+        self.assertEqual([text for text, source in figures["solvency_ratio"].candidates], ["1.874", RATIO_2025])
+
+    def test_scr_and_mcr_must_be_above_zero(self):
+        figures = {"scr": amount("scr", "0"), "mcr": amount("mcr", "0")}
+        run_relations(figures, [POSITIVE_SCR, POSITIVE_MCR])
+        self.assertEqual((figures["scr"].status, figures["mcr"].status), ("conflict", "conflict"))
+
+    def test_scr_zero_does_not_stop_the_run(self):
+        figures = {"solvency_ratio": ratio("1.874"), "own_funds_total": amount("own_funds_total", "293699300"),
+                   "scr": amount("scr", "0")}
+        run_relations(figures, [RATIO])  # would divide by zero
+        self.assertEqual(figures["solvency_ratio"].status, "conflict")
 
 
 class PriorYearTest(unittest.TestCase):
