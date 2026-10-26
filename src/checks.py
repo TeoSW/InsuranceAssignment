@@ -1,5 +1,5 @@
 """Checks that run before any figure reaches the text: last year's column, a value identical to last
-year's (D6), the relations from relations.toml, and the decisions that resolve conflicts.
+year's (maybe copied), the relations from relations.toml, and the decisions that resolve conflicts.
 A figure in conflict keeps every value found for it (candidates) and waits for a decision."""
 
 from decimal import Decimal
@@ -47,7 +47,7 @@ def check_prior_column(figures, prior_column):
 
 
 def check_same_as_prior(figures, prior_year):
-    """A non-zero value identical to last year's may have been copied: it waits for a decision (D6)."""
+    """A non-zero value identical to last year's may have been copied: it waits for a decision."""
     lines = []
     for figure_id, value in figures.items():
         last_year = figures.get("prior:" + figure_id)
