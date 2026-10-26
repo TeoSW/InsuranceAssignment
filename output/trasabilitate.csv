@@ -5,7 +5,7 @@ own_funds_t3;0;0,0 mil. lei;registru_2025.xlsx, foaia Capital, celula C7;Fonduri
 own_funds_total;293699300;293,7 mil. lei;registru_2025.xlsx, foaia Capital, celula C8 (formulă);Fonduri proprii eligibile SCR, total;mii lei;ok;
 scr;148763200;148,8 mil. lei;registru_2025.xlsx, foaia Capital, celula C10;SCR;mii lei;ok;
 mcr;;;registru_2025.xlsx, foaia Capital, celula C11;MCR;;gol;"valoarea pentru „MCR” lipsește în registru_2025.xlsx, foaia Capital; nota din rând: „în lucru, actuariat”"
-solvency_ratio;1.874;;registru_2025.xlsx, foaia Capital, celula C12;Rata de solvabilitate;;conflict;"pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: own_funds_total / scr); este nevoie de o decizie în config/decisions.toml"
+solvency_ratio;1.874;;registru_2025.xlsx, foaia Capital, celula C12;Rata de solvabilitate;;conflict;"pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: „Fonduri proprii eligibile SCR, total” / „SCR”); este nevoie de o decizie în config/decisions.toml"
 scr_underwriting;104215000;104,2 mil. lei;registru_2025.xlsx, foaia SCR_module, celula C5;Risc de subscriere asigurare generală;mii lei;ok;
 scr_market;41902600;41,9 mil. lei;registru_2025.xlsx, foaia SCR_module, celula C6;Risc de piață;mii lei;ok;
 scr_counterparty;11807300;11,8 mil. lei;registru_2025.xlsx, foaia SCR_module, celula C7;Risc de contrapartidă;mii lei;ok;

@@ -30,12 +30,12 @@
 ## Goluri în draft (de completat înainte de publicare)
 
 - E, E1_legal_basis: afirmația „fondurile proprii sunt clasificate conform Regulamentului delegat (UE) 2015/35 și Legii nr. 237/2015, aplicabile Societății începând cu 1 ianuarie 2016” nu a fost confirmată de un om (config/facts.toml)
-- E, E2_ratio: pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: own_funds_total / scr); este nevoie de o decizie în config/decisions.toml
+- E, E2_ratio: pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: „Fonduri proprii eligibile SCR, total” / „SCR”); este nevoie de o decizie în config/decisions.toml
 - E, E2_mcr: valoarea pentru „MCR” lipsește în registru_2025.xlsx, foaia Capital; nota din rând: „în lucru, actuariat”; calculul MCR nu este finalizat, conform notei funcției actuariale din 2 februarie 2026 (nota_functia_actuariala_2026-02-02.docx)
 
 ## Conflicte (așteaptă o decizie în config/decisions.toml)
 
-- solvency_ratio („Rata de solvabilitate”): `1.874` din registru_2025.xlsx, foaia Capital, celula C12; `1.974273879561612011572754552` din calcul: own_funds_total / scr
+- solvency_ratio („Rata de solvabilitate”): `1.874` din registru_2025.xlsx, foaia Capital, celula C12; `1.974273879561612011572754552` din calcul: „Fonduri proprii eligibile SCR, total” / „SCR”
 
 ## Decizii
 
