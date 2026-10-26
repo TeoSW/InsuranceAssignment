@@ -2,11 +2,11 @@
 year's (maybe copied), the relations from relations.toml, and the decisions that resolve conflicts.
 A figure in conflict keeps every value found for it (candidates) and waits for a decision."""
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from config import figures_in
 
-RATIO_TOLERANCE = Decimal("0.05")  # percentage points between the stated and the calculated ratio
+RATIO_TOLERANCE = Decimal("0.05")  # percentage points between the displayed ratio and the calculated one
 
 
 def exact(number):
@@ -32,17 +32,20 @@ def mark_conflict(value, other=None):
 
 
 def check_prior_column(figures, prior_column):
-    """This year's "an anterior" column must equal last year's workbook, exactly."""
+    """This year's "an anterior" column must equal last year's workbook, exactly. An empty cell is not
+    reported; a comparison that cannot run for any other reason gets a "not_checked" line."""
     lines = []
     for figure_id, column_value in prior_column.items():
         last_year = figures.get("prior:" + figure_id)
+        check = f"{figure_id}: coloana „an anterior” = registrul anului trecut"
         if column_value.value is None or last_year is None or last_year.value is None:
+            if column_value.reason[:1] not in (("value_missing",), ("value_missing_note",)):
+                lines.append({"check": check, "result": "not_checked"})
             continue
         same = column_value.value == last_year.value
         if not same:
             mark_conflict(last_year, (column_value.value, column_value.source))
-        lines.append({"check": f"{figure_id}: coloana „an anterior” = registrul anului trecut",
-                      "result": "ok" if same else "conflict"})
+        lines.append({"check": check, "result": "ok" if same else "conflict"})
     return lines
 
 
@@ -89,7 +92,8 @@ def evaluate(relation, figures):
     if value[relation["b"]] == 0:
         return False, {}  # the ratio cannot be calculated
     calculated = value[relation["a"]] / value[relation["b"]]
-    holds = abs(value[relation["r"]] - calculated) * 100 <= RATIO_TOLERANCE
+    displayed = (value[relation["r"]] * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)  # as the text shows it
+    holds = abs(displayed - calculated * 100) <= RATIO_TOLERANCE
     return holds, {relation["r"]: (calculated, f"calcul: {relation['a']} / {relation['b']}")}
 
 

@@ -96,13 +96,18 @@ def write_sentence(variants, figures, facts, problems, cfg, explanations, calcul
     gap_words = cfg["settings"]["words"]["gap"]
     for variant in variants:
         holds = condition(variant.get("when", ""), figures, facts, problems)
-        if holds is None:  # the condition needs a figure that is a gap
-            reason = reason_text(figures[condition_figure(variant["when"].split())], cfg, explanations)
+        if holds is None:  # the condition needs a figure that is a gap or in conflict
+            blocking = next(v for v in condition_figures(variant["when"].split(), figures) if v and not usable(v))
+            reason = reason_text(blocking, cfg, explanations)
             return gap_words.format(reason=reason), reason
         if holds:
             break
-    reasons = [cfg["gap_reasons"][problems[name][0]].format_map(Missing(problems[name][1]))
-               for name in variant.get("needs", []) if problems.get(name)]
+    reasons = []
+    for name in variant.get("needs", []):  # a needed fact: confirmed, found, and its direction matches
+        if problems.get(name):
+            reasons.append(cfg["gap_reasons"][problems[name][0]].format_map(Missing(problems[name][1])))
+        elif not condition("fact " + name, figures, facts, problems):
+            reasons.append(cfg["gap_reasons"]["fact_direction"].format_map(Missing(facts[name])))
 
     def fill(match):
         prefix, name = match.groups()
@@ -126,7 +131,7 @@ def write_sentence(variants, figures, facts, problems, cfg, explanations, calcul
 
 def condition(when, figures, facts, problems):
     """True or False for "X == 0", "X > 0", "changed X", "fact F" (or no condition).
-    None when the condition needs figure X and X is a gap."""
+    None when the condition needs figure X and X is a gap, or "changed X" and last year's X is in conflict."""
     words = when.split()
     if not words:
         return True
@@ -138,17 +143,21 @@ def condition(when, figures, facts, problems):
             return True
         found = direction(figures.get(fact["about"]), figures.get("prior:" + fact["about"]))
         return FACT_DIRECTION.get(found) == fact["direction"]
-    value = figures.get(condition_figure(words))
+    if words[0] == "changed":
+        value, last_year = figures.get(words[1]), figures.get("prior:" + words[1])
+        if not usable(value) or (last_year is not None and last_year.status == "conflict"):
+            return None
+        return direction(value, last_year) is not None
+    value = figures.get(words[0])
     if not usable(value):
         return None
-    if words[0] == "changed":
-        return direction(value, figures.get("prior:" + words[1])) is not None
     return value.value == 0 if words[1] == "==" else value.value > 0
 
 
-def condition_figure(words):
-    """The figure a condition looks at: X in "X == 0", "X > 0" and "changed X"."""
-    return words[1] if words[0] == "changed" else words[0]
+def condition_figures(words, figures):
+    """The figures a condition looks at: X in "X == 0" and "X > 0"; X and last year's X in "changed X"."""
+    names = [words[1], "prior:" + words[1]] if words[0] == "changed" else [words[0]]
+    return [figures.get(name) for name in names]
 
 
 STATUS = {"ok": "ok", "gap": "gol", "conflict": "conflict", "decision": "decizie"}

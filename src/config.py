@@ -15,7 +15,7 @@ from read import label_key, normalize
 GAP_REASONS = """file_missing file_unreadable unexpected_error sheet_not_found header_not_found label_not_found
 label_not_unique unit_unknown formula_no_value value_text value_missing value_missing_note fact_unconfirmed
 fact_not_found conflict same_as_prior unverified depends_on_conflict decision_gap decision_stale change_from_zero
-fact_explains""".split()
+fact_explains fact_direction""".split()
 # A placeholder in a sentence: {X}, {prior:X}, {direction:X}, {change:X}, {year}, {prior_year}.
 PLACEHOLDER = re.compile(r"\{(?:(prior|direction|change):)?(\w+)\}")
 

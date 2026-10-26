@@ -34,6 +34,17 @@ confirmed_by = "Teodor-Vasile Constantin"
 confirmed_on = "2026-10-26"
 
 [[fact]]
+id = "market_risk_down"             # added after the code review: the cause names market risk, so its direction is checked too
+statement = "riscul de piață a scăzut în 2025"
+document = "nota_functia_actuariala_2026-02-02.docx"
+page = 1
+quote = "Cerința de capital de solvabilitate a scăzut la 31 decembrie 2025 față de anul anterior, în principal ca urmare a scăderii riscului de piață."
+about = "scr_market"
+direction = "scădere"
+confirmed_by = ""
+confirmed_on = ""
+
+[[fact]]
 id = "dividends_paid_fs"
 statement = "în 2025 Societatea a plătit dividende de 15.000.000 lei"
 document = "situatii_financiare_2025_extras.pdf"

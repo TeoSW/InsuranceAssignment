@@ -137,6 +137,26 @@ class VariantTest(unittest.TestCase):
         problems = {"cause": ("fact_unconfirmed", {"statement": CAUSE["statement"]})}
         self.assertNotIn("din cauza", render(SCR, scr(), [CAUSE], problems))
 
+    def test_last_years_figure_in_conflict_makes_a_gap_not_a_silent_fallback(self):
+        figures = scr()
+        figures["prior:scr"].status = "conflict"
+        figures["prior:scr"].reason = ("conflict", {"label": "SCR anul trecut"})
+        figures["prior:scr"].candidates = [("151900000", "registru_2024.xlsx"), ("150000000", "registru_2025.xlsx")]
+        text = render(SCR, figures, *NO_CAUSE)
+        self.assertTrue(text.startswith("[de completat: pentru „SCR anul trecut”"), text)
+
+    def test_cause_also_needs_the_direction_of_the_driver_it_names(self):
+        market_down = {"id": "market", "statement": "riscul de piață a scăzut", "document": "nota.docx", "page": 1,
+                       "about": "scr_market", "direction": "scădere"}
+        sentence = [dict(SCR[0], needs=["market"]), SCR[1], SCR[2]]
+        facts, problems = [CAUSE, market_down], {"cause": None, "market": None}
+        figures = dict(scr(), scr_market=amount("scr_market", "41902600"), **{"prior:scr_market": amount("prior:scr_market", "58300000")})
+        self.assertTrue(render(sentence, figures, facts, problems).endswith("din cauza pieței."))
+        figures["scr_market"] = amount("scr_market", "60000000")  # market risk rose while the SCR fell
+        text = render(sentence, figures, facts, problems)
+        self.assertNotIn("din cauza pieței", text)
+        self.assertIn("riscul de piață a scăzut", text)
+
     def test_needed_fact_not_confirmed_makes_a_gap(self):
         sentence = [{"id": "s", "needs": ["legal"], "text": "Clasificare conform legii."}]
         problems = {"legal": ("fact_unconfirmed", {"statement": "clasificarea fondurilor proprii"})}

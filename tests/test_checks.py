@@ -121,6 +121,13 @@ class EqualLessRatioTest(unittest.TestCase):
         self.assertEqual([text for text, source in figures["solvency_ratio"].candidates], ["1.874", RATIO_2025])
         self.assertEqual((figures["own_funds_total"].status, figures["scr"].status), ("ok", "ok"))
 
+    def test_ratio_is_compared_as_the_text_shows_it(self):
+        # stated 1,97475 is printed 197,5 %; the calculation is 197,427 %: 0,073 apart on the displayed value
+        figures = {"solvency_ratio": ratio("1.97475"), "own_funds_total": amount("own_funds_total", "293699300"),
+                   "scr": amount("scr", "148763200")}
+        run_relations(figures, [RATIO])
+        self.assertEqual(figures["solvency_ratio"].status, "conflict")
+
     def test_less_fails(self):
         figures = {"mcr": amount("mcr", "200"), "scr": amount("scr", "100")}
         run_relations(figures, [LESS])
@@ -186,6 +193,17 @@ class PriorYearTest(unittest.TestCase):
         figures = {"prior:scr": amount("prior:scr", "151900000")}
         check_prior_column(figures, {"scr": amount("scr", "150000000")})
         self.assertEqual([text for text, source in figures["prior:scr"].candidates], ["151900000", "150000000"])
+
+    def test_a_prior_column_that_cannot_be_read_is_reported(self):
+        figures = {"prior:scr": amount("prior:scr", "151900000")}
+        unreadable = Value("scr", "amount", status="gap", reason=("header_not_found", {}))
+        lines = check_prior_column(figures, {"scr": unreadable})
+        self.assertEqual([line["result"] for line in lines], ["not_checked"])
+
+    def test_an_empty_prior_cell_is_not_reported(self):
+        figures = {"prior:own_funds_t1": amount("prior:own_funds_t1", "251300000")}
+        empty = Value("own_funds_t1", "amount", status="gap", reason=("value_missing", {}))
+        self.assertEqual(check_prior_column(figures, {"own_funds_t1": empty}), [])
 
     def test_value_identical_to_last_year_waits_for_a_decision(self):
         figures = {"mcr": amount("mcr", "45570000"), "prior:mcr": amount("prior:mcr", "45570000")}

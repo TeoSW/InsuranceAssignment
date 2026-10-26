@@ -32,3 +32,4 @@ decision_stale = "valorile pentru „{label}” s-au schimbat după decizia din 
 # Writing the text
 change_from_zero = "schimbarea pentru „{label}” nu se poate calcula în procente: valoarea de comparație este zero"
 fact_explains = "{statement} ({document})"
+fact_direction = "{document} spune „{statement}”, dar cifrele din registru nu arată această direcție"

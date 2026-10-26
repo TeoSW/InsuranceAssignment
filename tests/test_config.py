@@ -162,7 +162,7 @@ class FactTest(ConfigCase):
         self.assertError("test_fact", "mcr")
 
     def test_direction_must_be_increase_or_decrease(self):
-        self.edit("facts.toml", 'direction = "scădere"', 'direction = "stabil"')
+        self.edit("facts.toml", 'about = "scr"\ndirection = "scădere"', 'about = "scr"\ndirection = "stabil"')
         self.assertError("stabil")
 
     def test_about_must_be_a_known_figure(self):
