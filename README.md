@@ -1,16 +1,16 @@
 # SFCR 2025, section E: Asigurări Carpați
 
-The program writes the 2025 draft of SFCR section E (own funds, SCR, MCR, solvency ratio). It takes the wording of the published 2024 report, the figures from the 2025 workbook and the facts from the client's documents. Where it cannot fill something correctly, it leaves a visible gap: `[de completat: reason]`. The design and the decisions behind it are in `DESIGN.md` (in Romanian).
+This program writes the 2025 draft of SFCR section E (own funds, SCR, MCR, solvency ratio). It uses the approved wording taken from the published 2024 report, the figures from the 2025 workbook and the facts from the client's documents. Where it cannot fill something in correctly, it leaves a visible gap: `[de completat: reason]`. `DESIGN.md` (in Romanian) explains the design and the decisions behind it.
 
 ## Install
 
-Python 3.11 or newer.
+You need Python 3.11 or newer.
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere), then:
+Activate the environment (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere), then install the dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -24,26 +24,26 @@ From the `date/` folder:
 python ../src/main.py
 ```
 
-Path assumption: `date/` holds the client's files and sits in the project root, next to `src/`, `config/` and `output/`. The program reads its inputs from the folder you run it from, and finds `config/` and `output/` from its own location. To run it on another version of `registru_2025.xlsx`, put the new file in `date/` under the same name and run the same command. Nothing else changes.
+The program assumes that `date/` holds the client's files and sits in the project root, next to `src/`, `config/` and `output/`. It reads its inputs from the folder you run it from and finds `config/` and `output/` from its own location. To run it on another version of `registru_2025.xlsx`, put the new file in `date/` under the same name and run the same command; the code and config stay as they are.
 
-Exit code 0 means the draft was written. Exit code 1 means nothing could be drafted: the config has an error, or the program met an error it did not expect (`output/verificari.md` says which, and no half-written draft is left), or `output/` could not be emptied because a file in it is open.
+Exit code 0 means the draft was written. Exit code 1 means nothing was drafted: the config has an error, the program met an error it did not expect, or `output/` could not be emptied because one of its files is open. In the first two cases `output/verificari.md` says what went wrong, and no half-written draft is left behind.
 
 ## What it writes
 
-`output/` is emptied at the start of every run, so everything in it comes from the last run.
+`output/` is emptied at the start of every run, so everything in it comes from the latest run.
 
-- `sectiunea_E_2025.md`: the draft. Every sentence comes from `config/sentences.toml`, every number from the workbook or a document. A first line "ȘABLON NEAPROBAT" means the text has not been approved in `config/approvals.toml`.
-- `trasabilitate.csv`: one line per figure, with its exact value, what the text shows, its source (file, sheet and cell; document and page; or the calculation), label, unit, status (`ok`, `gol`, `conflict`, `decizie`) and the reason for a gap. It opens in Excel (UTF-8, `;`).
-- `verificari.md`: checksums of the input files, hidden sheets (never read), every check and its result, conflicts with their exact values, decisions with who proposed and approved them and when, the facts and whether they were used, and the text approval.
+- `sectiunea_E_2025.md`: the draft. Every sentence comes from `config/sentences.toml`; every number comes from the workbook, a document, or a calculation on them. If the first line reads "ȘABLON NEAPROBAT", the text has not been approved in `config/approvals.toml`, or it has changed since its approval.
+- `trasabilitate.csv`: one line per figure, with its exact value, what the text shows, its source (file, sheet and cell; document and page; or the calculation), label, unit, status (`ok`, `gol`, `conflict`, `decizie`) and, for a gap, the reason. It opens in Excel (UTF-8, `;`).
+- `verificari.md`: checksums of the input files, hidden sheets (never read), every check and its result, the gaps in the draft, conflicts with their exact values, decisions with who proposed and approved them and when, the facts and whether they were used, and the text approval.
 
 ## What people do
 
-Everything a person decides lives in `config/`, so it is also in git. Each file explains its fields.
+Everything a person decides lives in `config/`, so git keeps it too. Each file explains its own fields.
 
 - `facts.toml`: confirm a fact after checking its quote in the document (`confirmed_by`, `confirmed_on`).
 - `decisions.toml`: resolve a conflict. Copy the exact values from `verificari.md`, then choose one of them or `"gap"`, with a source, a reason, and two different people.
-- `approvals.toml`: approve the wording of a section.
-- `figures.toml`, `relations.toml`, `sentences.toml`, `templates/`: update these when the workbook or the wording changes.
+- `approvals.toml`: approve a section's wording by entering who, when, and the sha256 that `verificari.md` prints for the text in use.
+- `figures.toml`, `relations.toml`, `sentences.toml`, `templates/`: update these when the workbook or the wording changes. A change to `sentences.toml` or `templates/` needs a new approval.
 
 ## Tests
 
@@ -53,7 +53,7 @@ From the project root:
 python -X utf8 -m unittest discover -s tests
 ```
 
-The mutation table (seven changes to a copy of the 2025 workbook):
+To print the mutation table (eleven changes to a copy of the 2025 workbook):
 
 ```bash
 python -X utf8 tests/test_mutations.py
@@ -61,4 +61,4 @@ python -X utf8 tests/test_mutations.py
 
 Tests that need the client's files are skipped when `date/` is missing.
 
-`tests/input_sha256.txt` records the SHA-256 of the client's files as delivered. No test uses it; from `date/`, `sha256sum -c ../tests/input_sha256.txt` shows whether a file has changed since.
+`tests/input_sha256.txt` records the SHA-256 of the client's files as delivered. No test uses it. From `date/`, `sha256sum -c ../tests/input_sha256.txt` shows whether a file has changed since.
