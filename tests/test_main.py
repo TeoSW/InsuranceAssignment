@@ -26,12 +26,13 @@ sys.addaudithook(record_open)
 
 @unittest.skipUnless((helpers.DATE / "registru_2025.xlsx").exists(), "date/ lipsește")
 class RunCase(unittest.TestCase):
-    confirm = False  # confirm the document facts in the temp config
+    confirm = False  # confirm the six document facts in the temp copy
+    approve = False  # approve section E in the temp copy
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)  # runs even if setUp fails (tearDown would not)
-        helpers.project_copy(self.tmp, confirm=self.confirm)
+        helpers.project_copy(self.tmp, confirm=self.confirm, approve=self.approve)
 
     def run_main(self):
         with mock.patch("builtins.print"):
@@ -90,6 +91,23 @@ class UnconfirmedTest(RunCase):
         self.assertIn("în scădere cu 2,1 % față de 151,9 mil. lei", draft)
         self.assertNotIn("ca urmare a", draft)
         self.assertIn("[de completat: afirmația „fondurile proprii sunt clasificate", draft)
+
+
+class ApprovedTest(RunCase):
+    confirm, approve = True, True
+
+    def test_an_approved_section_has_no_banner(self):
+        self.run_main()
+        self.assertTrue(self.output("sectiunea_E_2025.md").startswith("# E. GESTIONAREA CAPITALULUI"))
+        self.assertIn("- E: aprobat de Test la", self.output("verificari.md"))
+
+    def test_verificari_lists_every_gap_of_the_draft(self):
+        self.run_main()
+        checks = self.output("verificari.md")
+        block = checks[checks.index("## Goluri în draft"):checks.index("## Conflicte")]
+        self.assertEqual(self.output("sectiunea_E_2025.md").count("[de completat:"), sum(line.startswith("- E, ") for line in block.splitlines()))
+        for sentence in ("E1_legal_basis", "E2_ratio", "E2_mcr"):
+            self.assertIn(f"- E, {sentence}: ", block)
 
 
 class AcceptanceTest(RunCase):

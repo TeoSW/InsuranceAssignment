@@ -69,9 +69,9 @@ def reason_text(value, cfg, explanations):
 
 
 def render_section(template, sentences, figures, facts, problems, cfg):
-    """The section: each {sentence id} in the template becomes its sentence or one gap.
-    Returns (text, the calculated sizes of change, which get their own line in trasabilitate.csv)."""
-    variants, calculated = {}, {}
+    """The section: each {sentence id} in the template becomes its sentence or one gap. Returns (text,
+    the calculated sizes of change for trasabilitate.csv, the gaps as (sentence id, reason) for verificari.md)."""
+    variants, calculated, gaps = {}, {}, []
     for sentence in sentences:
         variants.setdefault(sentence["id"], []).append(sentence)
     facts = {fact["id"]: fact for fact in facts}
@@ -81,18 +81,24 @@ def render_section(template, sentences, figures, facts, problems, cfg):
             text = cfg["gap_reasons"]["fact_explains"].format_map(Missing(fact))
             explanations.setdefault(fact["explains"], []).append(text)
     context = (figures, facts, problems, cfg, explanations, calculated)
-    text = re.sub(r"\{(\w+)\}", lambda match: write_sentence(variants[match.group(1)], *context), template)
-    return text, calculated
+
+    def sentence(match):
+        text, reason = write_sentence(variants[match.group(1)], *context)
+        if reason:
+            gaps.append((match.group(1), reason))
+        return text
+
+    return re.sub(r"\{(\w+)\}", sentence, template), calculated, gaps
 
 
 def write_sentence(variants, figures, facts, problems, cfg, explanations, calculated):
-    """The first variant whose condition holds, filled; or one gap with every reason."""
+    """(the first variant whose condition holds, filled, None) or (one gap, its reason)."""
     gap_words = cfg["settings"]["words"]["gap"]
     for variant in variants:
         holds = condition(variant.get("when", ""), figures, facts, problems)
         if holds is None:  # the condition needs a figure that is a gap
-            missing = figures[condition_figure(variant["when"].split())]
-            return gap_words.format(reason=reason_text(missing, cfg, explanations))
+            reason = reason_text(figures[condition_figure(variant["when"].split())], cfg, explanations)
+            return gap_words.format(reason=reason), reason
         if holds:
             break
     reasons = [cfg["gap_reasons"][problems[name][0]].format_map(Missing(problems[name][1]))
@@ -113,7 +119,9 @@ def write_sentence(variants, figures, facts, problems, cfg, explanations, calcul
         return ""
 
     text = PLACEHOLDER.sub(fill, variant["text"])
-    return gap_words.format(reason="; ".join(reasons)) if reasons else text
+    if reasons:
+        return gap_words.format(reason="; ".join(reasons)), "; ".join(reasons)
+    return text, None
 
 
 def condition(when, figures, facts, problems):
@@ -190,6 +198,8 @@ def write_checks(path, report, cfg):
             ("Fișiere de intrare (SHA-256)", [f"- {name}: {sha}" for name, sha in report["checksums"]], None),
             ("Foi ascunse (nu au fost citite)", [f"- {title} ({state})" for title, state in report["hidden"]], "- niciuna"),
             ("Verificări între cifre", [f"- {line['check']}: {RESULT[line['result']]}" for line in report["checks"]], None),
+            ("Goluri în draft (de completat înainte de publicare)",
+             [f"- {section}, {sentence}: {reason}" for section, sentence, reason in report["gaps"]], "- niciunul"),
             ("Conflicte (așteaptă o decizie în config/decisions.toml)", conflicts, "- niciunul"),
             ("Decizii", decisions, "- niciuna"),
             ("Fapte din documente", facts, None),

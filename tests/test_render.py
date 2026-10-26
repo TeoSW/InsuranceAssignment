@@ -25,7 +25,7 @@ def missing(figure_id, reason="value_missing", **args):
 
 
 def render(sentences, figures, facts=(), problems=None, cfg=CFG):
-    text, calculated = render_section("{s}", sentences, figures, list(facts), problems or {}, cfg)
+    text, calculated, gaps = render_section("{s}", sentences, figures, list(facts), problems or {}, cfg)
     return text
 
 
@@ -118,7 +118,7 @@ class VariantTest(unittest.TestCase):
         self.assertEqual(render(SCR, scr(), *NO_CAUSE), "SCR 148,8 mil. lei, în scădere cu 2,1 % față de 151,9 mil. lei în 2024.")
 
     def test_size_of_change_is_a_calculated_figure(self):
-        text, calculated = render_section("{s}", SCR, scr(), *NO_CAUSE, CFG)
+        text, calculated, gaps = render_section("{s}", SCR, scr(), *NO_CAUSE, CFG)
         self.assertEqual(calculated["change:scr"].value, D("3136800") / D("151900000"))
 
     def test_same_displayed_value_uses_the_fallback(self):
@@ -157,6 +157,12 @@ class VariantTest(unittest.TestCase):
                 "explains": "mcr"}
         text = render([{"id": "s", "text": "MCR {mcr}."}], {"mcr": missing("mcr")}, [note], {"note": None})
         self.assertIn("calculul MCR nu este finalizat (nota.docx)", text)
+
+    def test_every_gap_is_reported_with_its_sentence_and_reason(self):
+        sentences = [{"id": "a", "text": "SCR {scr}."}, {"id": "b", "text": "MCR {mcr}."}]
+        text, calculated, gaps = render_section("{a} {b}", sentences, {"scr": amount("scr", "1"), "mcr": missing("mcr")},
+                                                [], {}, CFG)
+        self.assertEqual(gaps, [("b", "valoarea pentru „mcr” lipsește în registru_2025.xlsx, foaia Capital")])
 
     def test_years_come_from_settings(self):
         cfg = copy.deepcopy(CFG)

@@ -58,20 +58,22 @@ def draft(cfg, folder, output, checks_file):
     checks += run_relations(figures, cfg["relations"])
     decisions = apply_decisions(figures, cfg["decisions"])
 
+    gaps = []
     for section in settings["sections"]:
-        text, calculated = render_section(cfg["templates"][section], cfg["sentences"], figures, cfg["facts"], problems, cfg)
+        text, calculated, section_gaps = render_section(cfg["templates"][section], cfg["sentences"], figures, cfg["facts"], problems, cfg)
         if not approval(cfg, section):
             text = settings["words"]["not_approved"] + "\n\n" + text
         name = settings["output"]["draft"].format(section=section, year=settings["reporting_year"])
         (output / name).write_text(text, encoding="utf-8")
         figures.update(calculated)
+        gaps += [(section, sentence, reason) for sentence, reason in section_gaps]
 
     inputs = [settings["workbooks"]["current"], settings["workbooks"]["prior"], *settings["documents"]]
     checksums = [(name, hashlib.sha256((folder / name).read_bytes()).hexdigest() if (folder / name).exists() else "lipsește")
                  for name in inputs]
     write_trace(output / settings["output"]["trace"], figures, cfg)
     write_checks(checks_file, {"checksums": checksums, "hidden": hidden, "checks": checks, "figures": figures,
-                               "decisions": decisions, "problems": problems}, cfg)
+                               "decisions": decisions, "problems": problems, "gaps": gaps}, cfg)
 
 
 if __name__ == "__main__":
