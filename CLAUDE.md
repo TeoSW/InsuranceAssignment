@@ -28,7 +28,7 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 
 - Nothing about the workbook layout is written in code or config: no cell addresses, columns, sheet order, units or years. Config holds labels, label aliases, relations and the reporting year.
 - Sheets are found by name, with aliases from config. Sheets with `sheet_state != "visible"` are never read and are reported.
-- A figure is accepted only if its normalized label (ş/ș, ţ/ț, case, whitespace) appears exactly once in the expected sheet. Zero or two or more matches: gap. The same label in another sheet is a cross-check.
+- A figure is accepted only if its normalized label (ş/ș, ţ/ț, case, whitespace) appears exactly once in the expected sheet. Zero or two or more matches: gap.
 - The column is found by its header ("an curent", "an anterior"). The unit is read from the sheet header, including per-row exceptions ("cu excepția numărului de dosare"). Unknown unit: gap.
 - Label found but the value is empty or text: gap, with the reason taken from the row's other cells.
 - Formulas: the cached value is checked by recalculating from relations. Missing and not recalculable: gap.
@@ -37,27 +37,29 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 
 ## Checks, conflicts, decisions
 
-- Relations live in config and are checked before any figure reaches the text:
-  - the tiers add up to total own funds;
-  - modules minus diversification (sign handled by label) give the basic SCR, plus operational risk give the SCR;
-  - the SCR is the same in every sheet where it appears;
-  - the stated ratio equals own funds / SCR (the only relation with a 0,05 tolerance on the displayed value);
-  - last year's SCR equals the figure published in 2024;
-  - MCR < SCR;
-  - dividends in the financial statements equal the amount approved by the AGA.
+- Relations live in config as seven entries of four fixed types (sum, equal, less, ratio) and are checked before any figure reaches the text:
+  - the tiers add up to total own funds (sum);
+  - modules minus diversification (sign handled by label) give the basic SCR (sum);
+  - basic SCR plus operational risk give the SCR in SCR_module (sum);
+  - the SCR in Capital equals the SCR in SCR_module (equal);
+  - the stated ratio equals own funds / SCR (ratio, the only relation with a 0,05 tolerance on the displayed value);
+  - MCR < SCR (less);
+  - dividends in the financial statements equal the amount approved by the AGA (equal).
+- Last year's SCR equals the figure published in 2024: this year's "an anterior" column must equal last year's workbook.
 - Sums and same-value cross-checks match exactly (tolerance 0); the 0,05 tolerance applies only to a stored rounded value compared with its recalculation (the ratio).
 - Conflicts are never resolved silently. Only a config decision resolves one, with source, reason, the exact conflicting values, `proposed_by`, `approved_by` and date. If the current values differ from the stored ones, the decision does not apply: gap.
 - Four eyes: `proposed_by` must differ from `approved_by`. A decision without source or reason, with "last year's figure" as source, or with the same person in both fields is rejected.
 - Facts from documents live in a separate file: statement, document, page, exact quote, `confirmed_by`. On every run the program searches for the quote in the document. Not found: gap.
-- Config self-check at start: schema valid, decisions valid, ids known, gap reasons complete. If the config fails this check, no draft is written, `verificari.md` says why, and the exit code is 1. Alias problems that depend on the workbook (an alias matching two rows, two figures on one row) are not config errors: the affected figures become gaps and `verificari.md` lists them. Problems in the workbook never block the run: they become gaps.
+- Config self-check at start: schema valid, decisions valid, ids known, gap reasons complete, prior_year = reporting_year - 1, a fact's value appears inside its quote, and no label alias belongs to two figures in the same sheet. If the config fails this check, no draft is written, `verificari.md` says why, and the exit code is 1. An alias matching two rows depends on the workbook, so it is not a config error: the figure becomes a gap and `verificari.md` lists it. Problems in the workbook never block the run: they become gaps.
 
 ## Text
 
-- The program never composes text. All report text (headings and sentences, sections A to E and the summary) lives in human-approved templates, with who approved them, when and a sha256. Wording changes with legislation, EU rules or the company, and only a human changes it.
+- The program never composes text. All report text (headings and sentences, sections A to E and the summary) lives in human-approved templates, with who approved them and when. Wording changes with legislation, EU rules or the company, and only a human changes it.
 - The program only fills placeholders (figures, years), picks direction words from a closed list ("în creștere" / "în scădere"), picks between human-written sentence variants by rule, and inserts gaps whose reasons come from a fixed catalog in config.
+- Sentence variants live in config with a simple condition (`X == 0`, `X > 0`, `changed X`, `fact F`); the first variant whose condition holds is used. Every sentence ends with a fallback variant with no condition and no direction or change. Direction and change appear only in variants whose condition is `changed X` or `fact F`. If the chosen variant cannot be filled, the whole sentence becomes one gap.
 - Direction is computed from unrounded figures and written only if the displayed values differ. The approved rule may add the size of the change, also on unrounded values, comparison year from config: "în scădere cu 2,1 % față de 2024". Ratios change in percentage points ("puncte procentuale"). The size of the change is a calculated figure with its own line in `trasabilitate.csv`.
 - A cause is a human-written variant. It appears only if a confirmed fact supports it and the direction in the document matches the computed one.
-- A template whose sha256 differs from its approval record is reported, and the draft is marked as not approved.
+- A template without an approval record (who and when) is reported, and the draft is marked as not approved.
 - Only the sections listed in config are rendered: E for this delivery. Adding a section needs config and templates only.
 
 ## Current decisions and assumptions (from DESIGN.md)
