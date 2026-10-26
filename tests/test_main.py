@@ -30,10 +30,8 @@ class RunCase(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)  # runs even if setUp fails (tearDown would not)
         helpers.project_copy(self.tmp, confirm=self.confirm)
-
-    def tearDown(self):
-        shutil.rmtree(self.tmp)
 
     def run_main(self):
         with mock.patch("builtins.print"):
