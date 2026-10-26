@@ -9,7 +9,7 @@ import re
 import zipfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import openpyxl
 from pypdf import PdfReader
@@ -163,12 +163,21 @@ def check_fact(fact, folder):
     return None
 
 
+def ro_number(text):
+    """A number written the Romanian way ("15.000.000", "1.234,5") as a Decimal; None if it is not one."""
+    try:
+        number = Decimal(text.replace(".", "").replace(",", "."))
+    except InvalidOperation:
+        return None
+    return number if number.is_finite() else None
+
+
 def fact_figure(fact, problem, settings):
     """The figure a fact supplies (its value, written as in the quote), or a gap if the fact cannot be used."""
     figure = {"id": fact["figure"], "kind": "amount"}
     if problem:
         return gap(figure, problem[0], label=fact["statement"], **problem[1])
     lei = {label_key(name): number for name, number in settings["units"].items()}[label_key(fact["unit"])]
-    number = Decimal(fact["value"].replace(".", "").replace(",", ".")) * lei
+    number = ro_number(fact["value"]) * lei
     source = f"{fact['document']}, pagina {fact['page']}: „{fact['quote']}”"
     return Value(fact["figure"], "amount", number, source, fact["statement"], fact["unit"])

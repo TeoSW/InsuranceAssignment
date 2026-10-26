@@ -57,6 +57,20 @@ class OutputTest(RunCase):
         self.assertEqual([p.name for p in (self.tmp / "output").iterdir()], ["verificari.md"])
         self.assertIn("prior_year", self.output("verificari.md"))
 
+    def test_config_of_the_wrong_type_is_explained_not_a_traceback(self):
+        figures = self.tmp / "config" / "figures.toml"
+        figures.write_text(figures.read_text(encoding="utf-8").replace('labels = ["MCR"]', 'labels = "MCR"'), encoding="utf-8")
+        self.assertEqual(self.run_main(), 1)
+        self.assertIn("labels", self.output("verificari.md"))
+
+    def test_an_unexpected_error_is_not_called_a_config_error(self):
+        with mock.patch.object(main, "render_section", side_effect=RuntimeError("boom")):
+            self.assertEqual(self.run_main(), 1)
+        checks = self.output("verificari.md")
+        self.assertIn("Eroare neprevăzută", checks)
+        self.assertNotIn("Configurația are erori", checks)
+        self.assertEqual([p.name for p in (self.tmp / "output").iterdir()], ["verificari.md"])
+
     def test_damaged_workbook_does_not_crash(self):
         (self.tmp / "date" / "registru_2025.xlsx").write_bytes(b"not a workbook")
         self.assertEqual(self.run_main(), 0)

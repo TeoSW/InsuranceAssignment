@@ -249,6 +249,68 @@ class TextHashTest(ConfigCase):
         self.assertNotEqual(text_sha256(self.config, "E"), before)
 
 
+NO_DOCUMENT_FACT = """
+[[fact]]
+id = "test_fact"
+statement = "test"
+document = ""
+page = 1
+quote = ""
+confirmed_by = ""
+confirmed_on = ""
+"""
+
+
+class TypeTest(ConfigCase):
+    """A field of the wrong type is a config error in verificari.md, never a crash."""
+
+    def test_a_list_written_as_text(self):
+        self.edit("figures.toml", 'labels = ["Rata de solvabilitate"]', 'labels = "Rata de solvabilitate"')
+        self.assertError("solvency_ratio", "labels")
+
+    def test_a_value_written_without_quotes(self):
+        self.edit("facts.toml", append=VALID_FACT.replace('value = "15.000.000"', "value = 15000000"))
+        self.assertError("test_fact", "value")
+
+    def test_a_list_of_numbers_instead_of_texts(self):
+        self.edit("decisions.toml", append=VALID_DECISION.replace('values = ["1.874", "1.974273879561612011572754552"]',
+                                                                  "values = [1.874, 1.974]"))
+        self.assertError("values")
+
+    def test_a_config_file_not_saved_as_utf8(self):
+        path = self.config / "settings.toml"
+        path.write_bytes(path.read_text(encoding="utf-8").encode("cp1250", errors="replace"))  # ă, î stay non-UTF-8
+        self.assertError("settings.toml")
+
+    def test_a_gap_reason_that_is_not_text(self):
+        self.edit("gap_reasons.toml", append="\nextra = 1\n")
+        self.assertError("gap_reasons.toml", "extra")
+
+
+class SelfCheckHoleTest(ConfigCase):
+    def test_about_needs_a_direction(self):
+        self.edit("facts.toml", 'about = "scr"\ndirection = "scădere"\n', 'about = "scr"\n')
+        self.assertError("scr_cause_market", "direction")
+
+    def test_a_document_needs_a_quote(self):
+        self.edit("facts.toml", 'quote = "politica de dividende aprobată de Consiliul de Administrație în 2023 rămâne neschimbată"',
+                  'quote = ""')
+        self.assertError("dividend_policy", "quote")
+
+    def test_a_fact_value_must_be_a_number(self):
+        fact = VALID_FACT.replace('"în valoare totală de 15.000.000 lei"', '"dividende (15.000.000) lei"')
+        self.edit("facts.toml", append=fact.replace('value = "15.000.000"', 'value = "(15.000.000)"'))
+        self.assertError("test_fact", "(15.000.000)")
+
+    def test_no_last_year_or_change_for_a_figure_from_a_document(self):
+        self.edit("sentences.toml", append='\n[[sentence]]\nid = "E1_extra"\ntext = "{prior:dividends_paid}"\n')
+        self.assertError("E1_extra", "dividends_paid")
+
+    def test_no_direction_without_a_document(self):
+        self.edit("facts.toml", append=NO_DOCUMENT_FACT.replace('confirmed_by = ""', 'about = "scr"\ndirection = "scădere"\nconfirmed_by = ""'))
+        self.assertError("test_fact", "document")
+
+
 class GapReasonsTest(ConfigCase):
     def test_every_reason_the_program_uses_has_a_text(self):
         self.edit("gap_reasons.toml", 'file_missing = "fișierul {file} nu există în folderul din care rulează programul"\n', "")

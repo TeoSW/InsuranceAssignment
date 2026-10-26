@@ -10,7 +10,7 @@ import tomllib
 from datetime import date
 from pathlib import Path
 
-from read import label_key, normalize
+from read import label_key, normalize, ro_number
 
 # Every gap reason the program can give. config/gap_reasons.toml must have a text for each.
 GAP_REASONS = """file_missing file_unreadable unexpected_error sheet_not_found header_not_found label_not_found
@@ -30,6 +30,16 @@ REQUIRED = {
     "settings": ["reporting_year", "prior_year", "sections", "workbooks", "documents", "reading", "units",
                  "words", "format", "decisions", "output"],
 }
+# The type of every field that may appear in an entry or in settings.toml. A list holds texts.
+TEXT, TEXTS, WHOLE, TABLE, DAY = str, list, int, dict, (str, date)
+TYPES = {"id": TEXT, "sheets": TEXTS, "labels": TEXTS, "labels_stored_negative": TEXTS, "kind": TEXT,
+         "type": TEXT, "total": TEXT, "parts": TEXTS, "minus": TEXTS, "a": TEXT, "b": TEXT, "r": TEXT,
+         "statement": TEXT, "document": TEXT, "page": WHOLE, "quote": TEXT, "confirmed_by": TEXT, "confirmed_on": DAY,
+         "about": TEXT, "direction": TEXT, "explains": TEXT, "figure": TEXT, "value": TEXT, "unit": TEXT,
+         "values": TEXTS, "chosen": TEXT, "source": TEXT, "reason": TEXT, "proposed_by": TEXT, "approved_by": TEXT,
+         "date": DAY, "text": TEXT, "when": TEXT, "needs": TEXTS, "reporting_year": WHOLE, "prior_year": WHOLE,
+         "sections": TEXTS, "workbooks": TABLE, "documents": TABLE, "reading": TABLE, "units": TABLE, "words": TABLE,
+         "format": TABLE, "decisions": TABLE, "output": TABLE}
 # The fields that name figures, for each type of relation ("minus" is optional).
 RELATION_FIELDS = {"sum": ["total", "parts"], "equal": ["a", "b"], "less": ["a", "b"], "ratio": ["r", "a", "b"],
                    "positive": ["a"]}
@@ -50,11 +60,15 @@ def load_config(folder):
         try:
             with open(Path(folder) / f"{name}.toml", "rb") as file:
                 cfg[name] = tomllib.load(file)
-        except (OSError, tomllib.TOMLDecodeError) as error:
+        except (OSError, ValueError) as error:  # ValueError: not TOML, or not saved as UTF-8
             errors.append(f"config/{name}.toml nu poate fi citit: {error}")
     if errors:
         return cfg, errors
     errors += missing_fields(cfg["settings"], "settings", "settings.toml")
+    errors += [f"gap_reasons.toml: motivul „{name}” trebuie scris ca text"
+               for name, text in cfg["gap_reasons"].items() if not isinstance(text, str)]
+    if errors:
+        return cfg, errors
     cfg["templates"], cfg["text_sha256"] = {}, {}
     for section in cfg["settings"].get("sections", []):
         try:
@@ -69,7 +83,8 @@ def load_config(folder):
             errors.append(f"{name}.toml: fiecare intrare se scrie [[{key}]]")
             continue
         for number, entry in enumerate(cfg[name], 1):
-            errors += missing_fields(entry, key, f"{name}.toml, intrarea {number}")
+            names = entry.get("id", entry.get("figure"))  # so the person can find the entry
+            errors += missing_fields(entry, key, f"{name}.toml, intrarea {number}" + (f" („{names}”)" if isinstance(names, str) else ""))
     if errors:
         return cfg, errors  # the checks below need every field
 
@@ -96,8 +111,15 @@ def text_sha256(folder, section):
 
 
 def missing_fields(entry, kind, where):
+    """Required fields that are missing, and fields of the wrong type (a list must hold texts)."""
     missing = [name for name in REQUIRED[kind] if name not in entry]
-    return [f"{where}: lipsește {', '.join(missing)}"] if missing else []
+    errors = [f"{where}: lipsește {', '.join(missing)}"] if missing else []
+    for name, value in entry.items():
+        expected = TYPES.get(name, object)
+        if not isinstance(value, expected) or isinstance(value, bool) \
+                or (expected is TEXTS and not all(isinstance(item, str) for item in value)):
+            errors.append(f"{where}: câmpul „{name}” are alt tip (de exemplu text între ghilimele sau listă de texte)")
+    return errors
 
 
 def check_figures(figures):
@@ -140,16 +162,23 @@ def check_facts(facts, settings, workbook_ids, ids):
         seen.add(fact["id"])
         if fact["document"] and fact["document"] not in settings["documents"]:
             errors.append(f"{here}: documentul „{fact['document']}” nu este în settings.toml [documents]")
+        if fact["document"] and not fact["quote"].strip():
+            errors.append(f"{here}: un fapt cu document are nevoie de quote")
         if "figure" in fact and not ("value" in fact and "unit" in fact):
             errors.append(f"{here}: figure are nevoie de value și unit")
         if fact.get("figure") in workbook_ids:
             errors.append(f"{here}: figure „{fact['figure']}” există deja în figures.toml")
         if "value" in fact and normalize(fact["value"]) not in normalize(fact["quote"]):
             errors.append(f"{here}: value „{fact['value']}” nu apare în quote")
+        if "value" in fact and ro_number(fact["value"]) is None:
+            errors.append(f"{here}: value „{fact['value']}” nu este un număr (scrieți-l ca 15.000.000)")
         if "unit" in fact and fact["unit"] not in settings["units"]:
             errors.append(f"{here}: unit „{fact['unit']}” nu este în settings.toml [units]")
-        if "direction" in fact and (fact["direction"] not in DIRECTIONS or "about" not in fact):
-            errors.append(f"{here}: direction „{fact['direction']}” trebuie să fie {' sau '.join(DIRECTIONS)}, cu about")
+        if ("direction" in fact or "about" in fact) and not (fact.get("direction") in DIRECTIONS and "about" in fact):
+            errors.append(f"{here}: about și direction ({' sau '.join(DIRECTIONS)}) se scriu împreună "
+                          f"(acum: about „{fact.get('about', '')}”, direction „{fact.get('direction', '')}”)")
+        if "direction" in fact and not fact["document"]:
+            errors.append(f"{here}: o direcție trebuie să vină dintr-un document (document nu poate fi gol)")
         errors += [f"{here}: {key} „{fact[key]}” nu este o cifră cunoscută"
                    for key in ("about", "explains") if key in fact and fact[key] not in ids]
     return errors
@@ -183,6 +212,7 @@ def check_decisions(decisions, ids, settings):
 def check_sentences(sentences, templates, ids, facts):
     """Template placeholders are sentences; every sentence ends with a fallback (no condition, no direction);
     direction and change only where the condition guarantees a visible change; known figures and facts."""
+    from_documents = {fact["figure"] for fact in facts if "figure" in fact}  # they have no last-year value
     errors, variants, facts = [], {}, {fact["id"]: fact for fact in facts}
     for sentence in sentences:
         variants.setdefault(sentence["id"], []).append(sentence)
@@ -202,6 +232,8 @@ def check_sentences(sentences, templates, ids, facts):
             for prefix, name in PLACEHOLDER.findall(variant["text"]):
                 if name not in ids and (prefix or name not in ("year", "prior_year")):
                     errors.append(f"{here}: „{name}” nu este o cifră cunoscută")
+                if prefix and name in from_documents:
+                    errors.append(f"{here}: {{{prefix}:{name}}}: o cifră dintr-un document nu are valoare de anul trecut")
                 guaranteed = when == ["changed", name] or (when[:1] == ["fact"] and facts.get(when[-1], {}).get("about") == name)
                 if prefix in ("direction", "change") and not guaranteed:
                     errors.append(f"{here}: {{{prefix}:{name}}} poate apărea doar într-o variantă „changed {name}” "

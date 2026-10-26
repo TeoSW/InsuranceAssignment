@@ -27,16 +27,21 @@ def main(root=ROOT, folder=None):
     except OSError as error:
         print(f"output/ nu poate fi golit; închideți fișierele deschise din el și rulați din nou ({error})")
         return 1
-    cfg, errors = load_config(root / "config")
-    checks_file = output / cfg.get("settings", {}).get("output", {}).get("checks", "verificari.md")
+    try:
+        cfg, errors = load_config(root / "config")
+    except Exception as error:  # a config the self-check did not foresee is still explained, never a traceback
+        cfg, errors = {}, [f"eroare neprevăzută la citirea configurației: {error!r}"]
+    checks_file = output / ("verificari.md" if errors else cfg["settings"]["output"]["checks"])
     if errors:
-        write_checks(checks_file, {"errors": errors}, cfg)
+        write_checks(checks_file, {"title": "Configurația are erori: nu s-a scris niciun draft", "errors": errors}, cfg)
         print(f"Configurația are erori; vezi {checks_file}")
         return 1
     try:
         draft(cfg, folder, output, checks_file)
     except Exception as error:  # a bug, not a data problem: data problems are gaps
-        write_checks(checks_file, {"errors": [f"eroare neprevăzută: {error!r}"]}, cfg)
+        for path in output.iterdir():
+            path.unlink()  # no half-written draft is left behind
+        write_checks(checks_file, {"title": "Eroare neprevăzută: nu s-a scris niciun draft", "errors": [repr(error)]}, cfg)
         print(f"Eroare neprevăzută; vezi {checks_file}")
         return 1
     print(f"Gata: {output}")

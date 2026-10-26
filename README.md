@@ -26,7 +26,7 @@ python ../src/main.py
 
 Path assumption: `date/` holds the client's files and sits in the project root, next to `src/`, `config/` and `output/`. The program reads its inputs from the folder you run it from, and finds `config/` and `output/` from its own location. To run it on another version of `registru_2025.xlsx`, put the new file in `date/` under the same name and run the same command. Nothing else changes.
 
-Exit code 0 means the draft was written. Exit code 1 means nothing could be drafted: the config has an error (`output/verificari.md` lists it), or `output/` could not be emptied because a file in it is open.
+Exit code 0 means the draft was written. Exit code 1 means nothing could be drafted: the config has an error, or the program met an error it did not expect (`output/verificari.md` says which, and no half-written draft is left), or `output/` could not be emptied because a file in it is open.
 
 ## What it writes
 

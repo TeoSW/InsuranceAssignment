@@ -191,7 +191,7 @@ def approval(cfg, section):
 def write_checks(path, report, cfg):
     """verificari.md: what was read, checked and decided, so a person can see where every gap comes from."""
     if report.get("errors"):
-        blocks = [("Configurația are erori: nu s-a scris niciun draft", [f"- {e}" for e in report["errors"]], None)]
+        blocks = [(report["title"], [f"- {e}" for e in report["errors"]], None)]
     else:
         conflicts = [f"- {value.id} („{value.label}”): " + "; ".join(f"`{t}` din {s}" for t, s in value.candidates)
                      for value in report["figures"].values() if value.status == "conflict"]
