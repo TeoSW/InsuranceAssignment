@@ -1,6 +1,7 @@
 """Write the text. The program only fills placeholders, picks a sentence variant by its condition,
 picks direction words from settings.toml and writes gaps whose reasons come from gap_reasons.toml."""
 
+import csv
 import re
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -139,3 +140,55 @@ def condition(when, figures, facts, problems):
 def condition_figure(words):
     """The figure a condition looks at: X in "X == 0", "X > 0" and "changed X"."""
     return words[1] if words[0] == "changed" else words[0]
+
+
+STATUS = {"ok": "ok", "gap": "gol", "conflict": "conflict", "decision": "decizie"}
+RESULT = {"ok": "ok", "conflict": "CONFLICT", "not_checked": "nu s-a putut verifica"}
+
+
+def write_trace(path, figures, cfg):
+    """trasabilitate.csv: one line per figure, with its exact value, what the text shows, and why."""
+    with open(path, "w", encoding="utf-8-sig", newline="") as file:  # BOM and ";" so Excel opens it in columns
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(["cifra", "valoare", "afisat", "sursa", "eticheta", "unitate", "stare", "motiv"])
+        for value in figures.values():
+            shown = display(value.kind, value.value, cfg["settings"]["format"]) if usable(value) else ""
+            reason = "" if usable(value) else reason_text(value, cfg, {})
+            writer.writerow([value.id, exact(value.value) if value.value is not None else "", shown, value.source,
+                             value.label, value.unit, STATUS[value.status], reason])
+
+
+def write_checks(path, report, cfg):
+    """verificari.md: what was read, checked and decided, so a person can see where every gap comes from."""
+    lines = ["# Verificări"]
+    if report.get("errors"):
+        lines += ["", "## Configurația are erori: nu s-a scris niciun draft", ""] + [f"- {e}" for e in report["errors"]]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return
+    lines += ["", "## Fișiere de intrare (SHA-256)", ""] + [f"- {name}: {sha}" for name, sha in report["checksums"]]
+    lines += ["", "## Foi ascunse (nu au fost citite)", ""]
+    lines += [f"- {title} ({state})" for title, state in report["hidden"]] or ["- niciuna"]
+    lines += ["", "## Verificări între cifre", ""] + [f"- {line['check']}: {RESULT[line['result']]}" for line in report["checks"]]
+    lines += ["", "## Conflicte (așteaptă o decizie în config/decisions.toml)", ""]
+    lines += [f"- {value.id} („{value.label}”): " + "; ".join(f"`{text}` din {source}" for text, source in value.candidates)
+              for value in report["figures"].values() if value.status == "conflict"] or ["- niciunul"]
+    lines += ["", "## Decizii", ""]
+    for line in report["decisions"]:
+        d = line["decision"]
+        lines.append(f"- {d['figure']}: ales `{d['chosen']}` din {d['values']}; sursa: {d['source']}; motiv: {d['reason']}; "
+                     f"propusă de {d['proposed_by']}, aprobată de {d['approved_by']} la {d['date']}; "
+                     + ("aplicată" if line["applied"] else "NU se aplică (nu există conflictul sau valorile s-au schimbat)"))
+    if not report["decisions"]:
+        lines.append("- niciuna")
+    lines += ["", "## Fapte din documente", ""]
+    for fact in cfg["facts"]:
+        problem = report["problems"][fact["id"]]
+        state = "folosit" if problem is None else cfg["gap_reasons"][problem[0]].format_map(Missing(problem[1]))
+        where = f"{fact['document']}, pagina {fact['page']}" if fact["document"] else "fără document"
+        lines.append(f"- {fact['id']} ({where}; confirmat de: {fact['confirmed_by'] or '-'} {fact['confirmed_on']}): {state}")
+    lines += ["", "## Aprobarea textului", ""]
+    for section in cfg["settings"]["sections"]:
+        approval = cfg["approvals"].get(section, {})
+        approved = approval.get("approved_by") and approval.get("approved_on")
+        lines.append(f"- {section}: " + (f"aprobat de {approval['approved_by']} la {approval['approved_on']}" if approved else "NEAPROBAT"))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
