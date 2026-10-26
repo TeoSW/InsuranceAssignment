@@ -30,16 +30,7 @@ class RunCase(unittest.TestCase):
 
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
-        shutil.copytree(helpers.ROOT / "config", self.tmp / "config")
-        shutil.copytree(helpers.DATE, self.tmp / "date")
-        if self.confirm:
-            facts = self.tmp / "config" / "facts.toml"
-            text = facts.read_text(encoding="utf-8").replace('confirmed_by = ""', 'confirmed_by = "Test"')
-            text = text.replace('id = "mcr_covered"', 'id = "mcr_covered"\n# not confirmed in the test either')
-            facts.write_text(text.replace(
-                'statement = "MCR a fost acoperită integral la 31 decembrie 2025"\ndocument = ""\npage = 1\nquote = ""\nconfirmed_by = "Test"',
-                'statement = "MCR a fost acoperită integral la 31 decembrie 2025"\ndocument = ""\npage = 1\nquote = ""\nconfirmed_by = ""'),
-                encoding="utf-8")
+        helpers.project_copy(self.tmp, confirm=self.confirm)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
