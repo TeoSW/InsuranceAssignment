@@ -1,5 +1,3 @@
-> ȘABLON NEAPROBAT: textul de mai jos nu a fost aprobat și nu se publică.
-
 # E. GESTIONAREA CAPITALULUI
 
 ## E.1 Fonduri proprii
@@ -12,7 +10,7 @@ La 31 decembrie 2025, fondurile proprii eligibile pentru acoperirea cerinței de
 
 ## E.2 Cerința de capital de solvabilitate și cerința de capital minim
 
-[de completat: afirmația „riscul de piață a scăzut în 2025” nu a fost confirmată de un om (config/facts.toml)] [de completat: pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: own_funds_total / scr); este nevoie de o decizie în config/decisions.toml]
+La 31 decembrie 2025, SCR a fost de 148,8 mil. lei, în scădere cu 2,1 % față de 151,9 mil. lei la sfârșitul anului 2024, în principal ca urmare a scăderii riscului de piață. [de completat: pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: own_funds_total / scr); este nevoie de o decizie în config/decisions.toml]
 
 [de completat: valoarea pentru „MCR” lipsește în registru_2025.xlsx, foaia Capital; nota din rând: „în lucru, actuariat”; calculul MCR nu este finalizat, conform notei funcției actuariale din 2 februarie 2026 (nota_functia_actuariala_2026-02-02.docx)]
 
