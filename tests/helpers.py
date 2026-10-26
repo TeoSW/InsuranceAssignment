@@ -37,8 +37,8 @@ def table(rows, unit="Valori în mii lei"):
 def project_copy(tmp, confirm=False, approve=False):
     """config/ and date/ copied into tmp, to run main.main(root=tmp, folder=tmp / "date").
     The copy does not keep the real confirmations and approval: every fact starts unconfirmed and
-    section E unapproved. confirm=True confirms the six facts that have a quote in a document (as at
-    checkpoint 2; legal_basis and mcr_covered stay unconfirmed); approve=True approves section E."""
+    section E unapproved. confirm=True confirms every fact that has a document (as a person would;
+    legal_basis and mcr_covered stay unconfirmed); approve=True approves section E and stores its sha256."""
     shutil.copytree(ROOT / "config", tmp / "config")
     shutil.copytree(DATE, tmp / "date")
     facts = tmp / "config" / "facts.toml"
