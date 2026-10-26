@@ -7,10 +7,30 @@ exactly. A different value makes the figure a conflict: a gap until a person dec
 
 from decimal import Decimal
 
-from common import exact, gap
+from common import Value, exact, gap
 
 # A difference of exactly this many times means a unit was mislabelled (lei, mii lei, milioane lei).
 UNIT_FACTORS = {Decimal(1000), Decimal(1000000)}
+
+
+def parse_check(check):
+    return None, "TODO", None
+
+
+def run_relations(figures, relations):
+    return [{"result": "TODO"} for relation in relations]
+
+
+def apply_decisions(figures, decisions):
+    return [{"applied": "TODO"} for decision in decisions]
+
+
+def direction(current, prior):
+    return "TODO"
+
+
+def change(current, prior):
+    return Value("TODO", "count", Decimal(-1), "TODO", status="TODO", reason=("TODO", {}))
 
 
 def prior_ids(values):
