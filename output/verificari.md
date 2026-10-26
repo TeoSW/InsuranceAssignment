@@ -11,12 +11,14 @@
 
 ## Foi ascunse (nu au fost citite)
 
-- Capital_vechi (hidden)
+- registru_2025.xlsx: Capital_vechi (hidden)
 
 ## Verificări între cifre
 
 - scr: coloana „an anterior” = registrul anului trecut: ok
 - solvency_ratio: identică cu 2024: CONFLICT
+- positive: scr: ok
+- positive: mcr: nu s-a putut verifica
 - sum: own_funds_total, own_funds_t1, own_funds_t2, own_funds_t3: ok
 - sum: scr_basic, scr_underwriting, scr_market, scr_counterparty, scr_diversification: ok
 - sum: scr_in_modules, scr_basic, scr_operational: ok
@@ -28,6 +30,7 @@
 ## Goluri în draft (de completat înainte de publicare)
 
 - E, E1_legal_basis: afirmația „fondurile proprii sunt clasificate conform Regulamentului delegat (UE) 2015/35 și Legii nr. 237/2015, aplicabile Societății începând cu 1 ianuarie 2016” nu a fost confirmată de un om (config/facts.toml)
+- E, E2_scr: afirmația „riscul de piață a scăzut în 2025” nu a fost confirmată de un om (config/facts.toml)
 - E, E2_ratio: pentru „Rata de solvabilitate” sursele sau verificările nu se potrivesc (187,4 % în registru_2025.xlsx, foaia Capital, celula C12; 197,4 % în calcul: own_funds_total / scr); este nevoie de o decizie în config/decisions.toml
 - E, E2_mcr: valoarea pentru „MCR” lipsește în registru_2025.xlsx, foaia Capital; nota din rând: „în lucru, actuariat”; calculul MCR nu este finalizat, conform notei funcției actuariale din 2 februarie 2026 (nota_functia_actuariala_2026-02-02.docx)
 
@@ -42,6 +45,7 @@
 ## Fapte din documente
 
 - scr_cause_market (nota_functia_actuariala_2026-02-02.docx, pagina 1; confirmat de: Teodor-Vasile Constantin 2026-10-26): folosit
+- market_risk_down (nota_functia_actuariala_2026-02-02.docx, pagina 1; confirmat de: - ): afirmația „riscul de piață a scăzut în 2025” nu a fost confirmată de un om (config/facts.toml)
 - dividends_paid_fs (situatii_financiare_2025_extras.pdf, pagina 1; confirmat de: Teodor-Vasile Constantin 2026-10-26): folosit
 - dividends_approved_aga (proces_verbal_AGA_2025-04-24.txt, pagina 1; confirmat de: Teodor-Vasile Constantin 2026-10-26): folosit
 - dividend_policy (proces_verbal_AGA_2025-04-24.txt, pagina 1; confirmat de: Teodor-Vasile Constantin 2026-10-26): folosit
@@ -52,4 +56,4 @@
 
 ## Aprobarea textului
 
-- E: aprobat de Teodor-Vasile Constantin la 2026-10-26
+- E: NEAPROBAT: lipsește sha256 în approvals.toml (sha256 aprobat: -; sha256 actual: 403a47dc3a4c30052362062e81c2ac070d2a129ccfbbb681f239981f02c37dc6)
