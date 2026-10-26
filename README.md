@@ -60,3 +60,5 @@ python -X utf8 tests/test_mutations.py
 ```
 
 Tests that need the client's files are skipped when `date/` is missing.
+
+`tests/input_sha256.txt` records the SHA-256 of the client's files as delivered. No test uses it; from `date/`, `sha256sum -c ../tests/input_sha256.txt` shows whether a file has changed since.

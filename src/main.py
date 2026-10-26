@@ -52,9 +52,11 @@ def draft(cfg, folder, output, checks_file):
     """Read, check, decide, write: the whole run on valid config."""
     settings = cfg["settings"]
     current_book, prior_book = folder / settings["workbooks"]["current"], folder / settings["workbooks"]["prior"]
-    current, hidden = read_workbook(current_book, cfg["figures"], settings)
+    current, hidden_now = read_workbook(current_book, cfg["figures"], settings)
     prior_column = read_workbook(current_book, cfg["figures"], settings, "prior")[0]
-    last_year = as_prior(read_workbook(prior_book, cfg["figures"], settings)[0])
+    last_year, hidden_before = read_workbook(prior_book, cfg["figures"], settings)
+    last_year = as_prior(last_year)
+    hidden = [(current_book.name, *sheet) for sheet in hidden_now] + [(prior_book.name, *sheet) for sheet in hidden_before]
     problems = {fact["id"]: check_fact(fact, folder) for fact in cfg["facts"]}
     from_facts = {fact["figure"]: fact_figure(fact, problems[fact["id"]], settings) for fact in cfg["facts"] if "figure" in fact}
     figures = {**current, **from_facts, **last_year}

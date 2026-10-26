@@ -87,7 +87,8 @@ def read_figure(book, formulas, figure, settings, column, file):
     here = {"label": label, "file": file, "sheet": sheet.title}
 
     header = label_key(settings["reading"][column + "_column"])
-    headers = [cell for cell in text_cells(sheet) if header in label_key(cell.value)]
+    whole_phrase = re.compile(rf"(?<!\w){re.escape(header)}(?!\w)")  # "an curent", not "plan curent"
+    headers = [cell for cell in text_cells(sheet) if whole_phrase.search(label_key(cell.value))]
     if len(headers) != 1:
         return gap(figure, "header_not_found", header=header, **here)
     header_row, value_column = headers[0].row, headers[0].column

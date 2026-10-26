@@ -128,6 +128,11 @@ class GapTest(WorkbookCase):
             values, _ = self.read([("Capital", rows)], [SCR])
             self.assertGap(values["scr"], "header_not_found")
 
+    def test_header_text_inside_another_word_is_not_a_header(self):
+        rows = table([["SCR", 1]], "Valori în lei") + [[None, "Notă: plan curent de lucru"]]  # "plan curent"
+        values, _ = self.read([("Capital", rows)], [SCR])
+        self.assertEqual(values["scr"].value, Decimal("1"))
+
     def test_label_not_found(self):
         values, _ = self.read([("Capital", table([["SCR total", 1]]))], [SCR])
         self.assertGap(values["scr"], "label_not_found")

@@ -1,5 +1,5 @@
-# Keep LF line endings on every machine, so the sha256 of an approved template
-# does not change when Git for Windows checks the file out (core.autocrlf).
+# Keep LF line endings on every machine (Git for Windows would turn them into CRLF).
+# The approval sha256 ignores line endings anyway; this keeps diffs and the archive clean.
 * text=auto eol=lf
 
 # Binary inputs used by the tests

@@ -209,7 +209,8 @@ def write_checks(path, report, cfg):
             facts.append(f"- {fact['id']} ({where}; confirmat de: {fact['confirmed_by'] or '-'} {fact['confirmed_on']}): {state}")
         blocks = [
             ("Fișiere de intrare (SHA-256)", [f"- {name}: {sha}" for name, sha in report["checksums"]], None),
-            ("Foi ascunse (nu au fost citite)", [f"- {title} ({state})" for title, state in report["hidden"]], "- niciuna"),
+            ("Foi ascunse (nu au fost citite)", [f"- {file}: {title} ({state})" for file, title, state in report["hidden"]],
+             "- niciuna"),
             ("Verificări între cifre", [f"- {line['check']}: {RESULT[line['result']]}" for line in report["checks"]], None),
             ("Goluri în draft (de completat înainte de publicare)",
              [f"- {section}, {sentence}: {reason}" for section, sentence, reason in report["gaps"]], "- niciunul"),

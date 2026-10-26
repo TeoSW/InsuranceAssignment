@@ -9,6 +9,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import openpyxl
+
 import helpers
 import main
 
@@ -70,6 +72,16 @@ class OutputTest(RunCase):
         self.assertIn("Eroare neprevăzută", checks)
         self.assertNotIn("Configurația are erori", checks)
         self.assertEqual([p.name for p in (self.tmp / "output").iterdir()], ["verificari.md"])
+
+    def test_hidden_sheets_of_last_years_workbook_are_reported_too(self):
+        path = self.tmp / "date" / "registru_2024.xlsx"
+        book = openpyxl.load_workbook(path, data_only=True)
+        book.create_sheet("Note_vechi").sheet_state = "hidden"
+        book.save(path)
+        self.run_main()
+        checks = self.output("verificari.md")
+        self.assertIn("registru_2024.xlsx: Note_vechi (hidden)", checks)
+        self.assertIn("registru_2025.xlsx: Capital_vechi (hidden)", checks)
 
     def test_damaged_workbook_does_not_crash(self):
         (self.tmp / "date" / "registru_2025.xlsx").write_bytes(b"not a workbook")

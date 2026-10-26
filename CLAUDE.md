@@ -47,7 +47,7 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
   - MCR < SCR (less);
   - a relation never confirms figures against a figure already in conflict: the figures it would confirm become gaps;
   - dividends in the financial statements equal the amount approved by the AGA (equal).
-- Last year's SCR equals the figure published in 2024: this year's "an anterior" column must equal last year's workbook.
+- Last year's SCR equals the figure published in 2024: at run time, this year's "an anterior" column must equal last year's workbook (registru_2024); the 2024 round-trip test proves that workbook reproduces the published report.
 - Sums and same-value cross-checks match exactly (tolerance 0); the 0,05 tolerance applies only to a stored rounded value compared with its recalculation (the ratio).
 - Conflicts are never resolved silently. Only a config decision resolves one, with source, reason, the exact conflicting values, `proposed_by`, `approved_by` and date. If the current values differ from the stored ones, the decision does not apply: gap.
 - Four eyes: `proposed_by` must differ from `approved_by`. A decision without source or reason, with "last year's figure" as source, or with the same person in both fields is rejected.
@@ -80,7 +80,7 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 
 ## Tests
 
-- Known traps become tests, not special cases in code. No sheet name or cell address appears in `src/` or `config/`.
+- Known traps become tests, not special cases in code. No sheet name appears in `src/` (config names the sheets it reads); no cell address appears in `src/` or `config/`.
 - Rounding: 0,25 → 0,3 and 0,35 → 0,4.
 - 2024 round trip: the mapping plus the 2024 workbook reproduce the published figures, and the test reports the known mapping defect ("12,6"). DESIGN.md cites this test, so it must exist.
 - Mutation tests with metrics: wrong figures reaching the text (must be 0), detection rate, unnecessary gaps.
