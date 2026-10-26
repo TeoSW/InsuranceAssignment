@@ -1,64 +1,64 @@
-# SFCR 2025, section E: Asigurări Carpați
+# SFCR 2025, secțiunea E: Asigurări Carpați
 
-This program writes the 2025 draft of SFCR section E (own funds, SCR, MCR, solvency ratio). It uses the approved wording taken from the published 2024 report, the figures from the 2025 workbook and the facts from the client's documents. Where it cannot fill something in correctly, it leaves a visible gap: `[de completat: reason]`. `DESIGN.md` (in Romanian) explains the design and the decisions behind it.
+Programul scrie draftul 2025 al secțiunii E din SFCR (fonduri proprii, SCR, MCR, rata de solvabilitate). Folosește formulările aprobate, preluate din raportul publicat pentru 2024, cifrele din registrul 2025 și faptele din documentele clientului. Unde nu poate completa corect ceva, lasă un gol vizibil: `[de completat: motiv]`. `DESIGN.md` explică designul și deciziile din spatele lui.
 
-## Install
+## Instalare
 
-You need Python 3.11 or newer.
+Aveți nevoie de Python 3.11 sau mai nou.
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere), then install the dependencies:
+Activați mediul (`.venv\Scripts\activate` pe Windows, `source .venv/bin/activate` în rest), apoi instalați dependențele:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+## Rulare
 
-From the `date/` folder:
+Din folderul `date/`:
 
 ```bash
 python ../src/main.py
 ```
 
-The program assumes that `date/` holds the client's files and sits in the project root, next to `src/`, `config/` and `output/`. It reads its inputs from the folder you run it from and finds `config/` and `output/` from its own location. To run it on another version of `registru_2025.xlsx`, put the new file in `date/` under the same name and run the same command; the code and config stay as they are.
+Programul presupune că `date/` conține fișierele clientului și se află în rădăcina proiectului, lângă `src/`, `config/` și `output/`. Citește intrările din folderul din care este rulat și găsește `config/` și `output/` pornind de la propria locație. Pentru a-l rula pe altă versiune a `registru_2025.xlsx`, puneți fișierul nou în `date/`, cu același nume, și rulați aceeași comandă; codul și config-ul rămân neschimbate.
 
-Exit code 0 means the draft was written. Exit code 1 means nothing was drafted: the config has an error, the program met an error it did not expect, or `output/` could not be emptied because one of its files is open. In the first two cases `output/verificari.md` says what went wrong, and no half-written draft is left behind.
+Codul de ieșire 0 înseamnă că draftul a fost scris. Codul de ieșire 1 înseamnă că nu s-a scris niciun draft: config-ul are o eroare, programul a întâlnit o eroare neprevăzută sau `output/` nu a putut fi golit pentru că unul dintre fișierele lui este deschis. În primele două cazuri, `output/verificari.md` spune ce nu a mers și nu rămâne niciun draft scris pe jumătate.
 
-## What it writes
+## Ce scrie programul
 
-`output/` is emptied at the start of every run, so everything in it comes from the latest run.
+`output/` este golit la începutul fiecărei rulări, deci tot ce conține vine din ultima rulare.
 
-- `sectiunea_E_2025.md`: the draft. Every sentence comes from `config/sentences.toml`; every number comes from the workbook, a document, or a calculation on them. If the first line reads "ȘABLON NEAPROBAT", the text has not been approved in `config/approvals.toml`, or it has changed since its approval.
-- `trasabilitate.csv`: one line per figure, with its exact value, what the text shows, its source (file, sheet and cell; document and page; or the calculation), label, unit, status (`ok`, `gol`, `conflict`, `decizie`) and, for a gap, the reason. It opens in Excel (UTF-8, `;`).
-- `verificari.md`: checksums of the input files, hidden sheets (never read), every check and its result, the gaps in the draft, conflicts with their exact values, decisions with who proposed and approved them and when, the facts and whether they were used, and the text approval.
+- `sectiunea_E_2025.md`: draftul. Fiecare propoziție vine din `config/sentences.toml`; fiecare cifră vine din registru, dintr-un document sau dintr-un calcul pe acestea. Dacă prima linie este "ȘABLON NEAPROBAT", textul nu a fost aprobat în `config/approvals.toml` sau s-a schimbat după aprobare.
+- `trasabilitate.csv`: câte o linie pentru fiecare cifră, cu valoarea exactă, ce arată textul, sursa (fișier, foaie și celulă; document și pagină; sau calculul), eticheta, unitatea, starea (`ok`, `gol`, `conflict`, `decizie`) și, pentru un gol, motivul. Se deschide în Excel (UTF-8, `;`).
+- `verificari.md`: sumele de control ale fișierelor de intrare, foile ascunse (care nu se citesc), fiecare verificare și rezultatul ei, golurile din draft, conflictele cu valorile lor exacte, deciziile, cu cine le-a propus, cine le-a aprobat și când, faptele și dacă au fost folosite, plus aprobarea textului.
 
-## What people do
+## Ce fac oamenii
 
-Everything a person decides lives in `config/`, so git keeps it too. Each file explains its own fields.
+Tot ce decide un om stă în `config/`, deci se păstrează și în git. Fiecare fișier își explică propriile câmpuri.
 
-- `facts.toml`: confirm a fact after checking its quote in the document (`confirmed_by`, `confirmed_on`).
-- `decisions.toml`: resolve a conflict. Copy the exact values from `verificari.md`, then choose one of them or `"gap"`, with a source, a reason, and two different people.
-- `approvals.toml`: approve a section's wording by entering who, when, and the sha256 that `verificari.md` prints for the text in use.
-- `figures.toml`, `relations.toml`, `sentences.toml`, `templates/`: update these when the workbook or the wording changes. A change to `sentences.toml` or `templates/` needs a new approval.
+- `facts.toml`: confirmați un fapt după ce verificați citatul în document (`confirmed_by`, `confirmed_on`).
+- `decisions.toml`: rezolvați un conflict. Copiați valorile exacte din `verificari.md`, apoi alegeți una dintre ele sau `"gap"`, cu o sursă, un motiv și două persoane diferite.
+- `approvals.toml`: pentru a aproba formularea unei secțiuni, completați cine, când și sha256-ul afișat de `verificari.md` pentru textul în uz.
+- `figures.toml`, `relations.toml`, `sentences.toml`, `templates/`: le actualizați când se schimbă registrul sau formularea. O schimbare în `sentences.toml` sau `templates/` cere o nouă aprobare.
 
-## Tests
+## Teste
 
-From the project root:
+Din rădăcina proiectului:
 
 ```bash
 python -X utf8 -m unittest discover -s tests
 ```
 
-To print the mutation table (eleven changes to a copy of the 2025 workbook):
+Pentru tabelul mutațiilor (unsprezece schimbări pe o copie a registrului 2025):
 
 ```bash
 python -X utf8 tests/test_mutations.py
 ```
 
-Tests that need the client's files are skipped when `date/` is missing.
+Testele care au nevoie de fișierele clientului sunt omise când lipsește `date/`.
 
-`tests/input_sha256.txt` records the SHA-256 of the client's files as delivered. No test uses it. From `date/`, `sha256sum -c ../tests/input_sha256.txt` shows whether a file has changed since.
+`tests/input_sha256.txt` păstrează SHA-256 pentru fișierele clientului, așa cum au fost livrate. Niciun test nu îl folosește. Din `date/`, `sha256sum -c ../tests/input_sha256.txt` arată dacă un fișier s-a schimbat de atunci.
