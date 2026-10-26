@@ -31,6 +31,7 @@ class Value:
     status: str = "ok"              # ok | gap | conflict | decision
     reason: tuple = ()              # (reason name in gap_reasons.toml, {placeholder: text})
     candidates: list = field(default_factory=list)  # [(exact value, source)] when sources disagree
+    why: list = field(default_factory=list)         # why this is the right value, for trasabilitate.csv
 
 
 def gap(figure, reason, source="", **args):
@@ -113,8 +114,10 @@ def read_figure(book, formulas, figure, settings, column, file):
     source = f"{file}, foaia {sheet.title}, celula {cell.coordinate}" + (" (formulă)" if is_formula else "")
     number = to_decimal(cell.value)
     if number is not None:
+        why = [f"eticheta „{label_cell.value}” apare o singură dată în foaia vizibilă {sheet.title}",
+               f"coloana „{headers[0].value}”"] + ([f"unitatea „{unit}” din antetul foii"] if unit else [])
         return Value(figure["id"], figure["kind"], number * signs[label_key(label_cell.value)] * lei, source,
-                     label_cell.value, unit)
+                     label_cell.value, unit, why=why)
     if is_formula:
         return gap(figure, "formula_no_value", source, **here)
     if cell.value is not None and str(cell.value).strip():
@@ -183,4 +186,6 @@ def fact_figure(fact, problem, settings):
     lei = {label_key(name): number for name, number in settings["units"].items()}[label_key(fact["unit"])]
     number = ro_number(fact["value"]) * lei
     source = f"{fact['document']}, pagina {fact['page']}: „{fact['quote']}”"
-    return Value(fact["figure"], "amount", number, source, fact["statement"], fact["unit"])
+    why = [f"citatul a fost găsit în {fact['document']}, pagina {fact['page']}",
+           f"confirmat de {fact['confirmed_by']} la {fact['confirmed_on']}"]
+    return Value(fact["figure"], "amount", number, source, fact["statement"], fact["unit"], why=why)

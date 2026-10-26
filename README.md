@@ -33,7 +33,7 @@ Codul de ieșire 0 înseamnă că draftul a fost scris. Codul de ieșire 1 înse
 `output/` este golit la începutul fiecărei rulări, deci tot ce conține vine din ultima rulare.
 
 - `sectiunea_E_2025.md`: draftul. Fiecare propoziție vine din `config/sentences.toml`; fiecare cifră vine din registru, dintr-un document sau dintr-un calcul pe acestea. Dacă prima linie este "ȘABLON NEAPROBAT", textul nu a fost aprobat în `config/approvals.toml` sau s-a schimbat după aprobare.
-- `trasabilitate.csv`: câte o linie pentru fiecare cifră, cu valoarea exactă, ce arată textul, sursa (fișier, foaie și celulă; document și pagină; sau calculul), eticheta, unitatea, starea (`ok`, `gol`, `conflict`, `decizie`) și, pentru un gol, motivul. Se deschide în Excel (UTF-8, `;`).
+- `trasabilitate.csv`: câte o linie pentru fiecare cifră, cu valoarea exactă, ce arată textul, sursa (fișier, foaie și celulă; document și pagină; sau calculul), de ce este valoarea potrivită (`de_ce`: eticheta găsită o singură dată în foaia vizibilă, coloana și unitatea din antet și verificările trecute; pentru un document, citatul găsit și cine l-a confirmat; pentru un calcul, că pornește de la valorile nerotunjite), eticheta, unitatea, starea (`ok`, `gol`, `conflict`, `decizie`) și, pentru un gol sau un conflict, motivul. Se deschide în Excel (UTF-8, `;`).
 - `verificari.md`: sumele de control ale fișierelor de intrare, foile ascunse (care nu se citesc), fiecare verificare și rezultatul ei, golurile din draft, conflictele cu valorile lor exacte, deciziile, cu cine le-a propus, cine le-a aprobat și când, faptele și dacă au fost folosite, plus aprobarea textului.
 
 ## Ce fac oamenii
@@ -41,7 +41,7 @@ Codul de ieșire 0 înseamnă că draftul a fost scris. Codul de ieșire 1 înse
 Tot ce decide un om stă în `config/`, deci se păstrează și în git. Fiecare fișier își explică propriile câmpuri.
 
 - `facts.toml`: confirmați un fapt după ce verificați citatul în document (`confirmed_by`, `confirmed_on`).
-- `decisions.toml`: rezolvați un conflict. Copiați valorile exacte din `verificari.md`, apoi alegeți una dintre ele sau `"gap"`, cu o sursă, un motiv și două persoane diferite.
+- `decisions.toml`: rezolvați un conflict. Copiați valorile exacte din `verificari.md`, apoi alegeți una dintre ele sau `"gap"`, cu o sursă, un motiv și două persoane diferite. Fișierul livrat este gol intenționat: o decizie cere două persoane diferite, iar rata de solvabilitate așteaptă decizia directorului financiar. Mutația "decizie pe o parte" din teste arată cum se aplică o decizie.
 - `approvals.toml`: pentru a aproba formularea unei secțiuni, completați cine, când și sha256-ul afișat de `verificari.md` pentru textul în uz.
 - `figures.toml`, `relations.toml`, `sentences.toml`, `templates/`: le actualizați când se schimbă registrul sau formularea. O schimbare în `sentences.toml` sau `templates/` cere o nouă aprobare.
 

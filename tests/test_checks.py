@@ -56,6 +56,8 @@ class SumTest(unittest.TestCase):
         figures = tiers()
         self.assertEqual(run_relations(figures, [SUM_TIERS])[0]["result"], "ok")
         self.assertEqual({value.status for value in figures.values()}, {"ok"})
+        self.assertEqual(figures["own_funds_t2"].why,
+                         ["verificată: own_funds_total = own_funds_t1 + own_funds_t2 + own_funds_t3"])
 
     def test_sums_must_match_exactly(self):
         figures = tiers(total="293699400")  # 100 lei more: invisible at one decimal of a million
@@ -74,6 +76,7 @@ class SumTest(unittest.TestCase):
         total = figures["own_funds_total"]
         self.assertEqual((total.status, total.value), ("ok", D("293699300")))
         self.assertTrue(total.source.startswith("calcul"))
+        self.assertEqual(total.why[0], "calculată din valorile nerotunjite ale componentelor (formula nu are valoare salvată)")
 
     def test_an_empty_cell_that_is_not_a_formula_is_not_computed(self):
         figures = tiers()
@@ -188,6 +191,7 @@ class PriorYearTest(unittest.TestCase):
         figures = {"prior:scr": amount("prior:scr", "151900000")}
         lines = check_prior_column(figures, {"scr": amount("scr", "151900000")})
         self.assertEqual((lines[0]["result"], figures["prior:scr"].status), ("ok", "ok"))
+        self.assertEqual(figures["prior:scr"].why, ["egală cu registru, scr"])
 
     def test_a_different_prior_column_is_a_conflict_on_last_years_figure(self):
         figures = {"prior:scr": amount("prior:scr", "151900000")}
@@ -233,6 +237,7 @@ class DecisionTest(unittest.TestCase):
         value = figures["solvency_ratio"]
         self.assertEqual((value.status, value.value, lines[0]["applied"]), ("decision", D(RATIO_2025), True))
         self.assertIn("Ion Ionescu", value.source)
+        self.assertEqual(value.why, ["aleasă prin decizia din 2026-10-26, aprobată de Ion Ionescu"])
 
     def test_can_keep_the_gap(self):
         figures = self.conflict()

@@ -58,6 +58,7 @@ class DirectionTest(unittest.TestCase):
         size = change(now, before)
         self.assertEqual((size.id, display(size.kind, size.value, FORMATS)), ("change:scr", "2,1 %"))
         self.assertIn("151900000", size.source)
+        self.assertEqual(size.why, ["calculată din valorile nerotunjite"])
 
     def test_up(self):
         self.assertEqual(direction(amount("scr", "151900000"), amount("prior:scr", "140200000")), "up")

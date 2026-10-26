@@ -71,6 +71,11 @@ class FindTest(WorkbookCase):
         self.assertEqual((values["scr"].value, values["scr"].unit), (Decimal("148763200"), "mii lei"))
         self.assertIn("Capital, celula C4", values["scr"].source)
 
+    def test_why_this_cell(self):
+        values, _ = self.read([("Capital", table([["SCR", 148763.2, 151900]]))], [SCR])
+        self.assertEqual(values["scr"].why, ["eticheta „SCR” apare o singură dată în foaia vizibilă Capital",
+                                             "coloana „31.12 an curent”", "unitatea „mii lei” din antetul foii"])
+
     def test_prior_column(self):
         values, _ = self.read([("Capital", table([["SCR", 148763.2, 151900]]))], [SCR], column="prior")
         self.assertEqual(values["scr"].value, Decimal("151900000"))
@@ -266,6 +271,8 @@ class FactTest(unittest.TestCase):
         value = fact_figure(dividends, None, SETTINGS)
         self.assertEqual((value.id, value.value, value.status), ("dividends_approved", Decimal("15000000"), "ok"))
         self.assertIn("proces_verbal_AGA_2025-04-24.txt, pagina 1", value.source)
+        self.assertEqual(value.why, ["citatul a fost găsit în proces_verbal_AGA_2025-04-24.txt, pagina 1",
+                                     "confirmat de Ana Pop la 2026-10-26"])
 
     def test_fact_that_fails_gives_a_gap_figure(self):
         dividends = fact(figure="dividends_approved", value="15.000.000", unit="lei", confirmed_by="")

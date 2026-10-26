@@ -192,6 +192,16 @@ class AcceptanceTest(RunCase):
         self.assertEqual((rows["solvency_ratio"]["stare"], rows["mcr"]["stare"]), ("conflict", "gol"))
         self.assertIn("formulă", rows["own_funds_total"]["sursa"])
 
+    def test_why_each_figure_is_the_right_one(self):
+        with open(self.tmp / "output" / "trasabilitate.csv", encoding="utf-8-sig", newline="") as file:
+            rows = {row["cifra"]: row["de_ce"] for row in csv.DictReader(file, delimiter=";")}
+        self.assertEqual(rows["scr"], "eticheta „SCR” apare o singură dată în foaia vizibilă Capital; "
+                                      "coloana „31.12 an curent”; unitatea „mii lei” din antetul foii; "
+                                      "verificată: scr > 0; verificată: scr = scr_in_modules")
+        self.assertIn("citatul a fost găsit în situatii_financiare_2025_extras.pdf, pagina 1", rows["dividends_paid"])
+        self.assertEqual(rows["change:scr"], "calculată din valorile nerotunjite")
+        self.assertEqual((rows["solvency_ratio"], rows["mcr"]), ("", ""))  # their reasons are in "motiv"
+
 
 if __name__ == "__main__":
     unittest.main()

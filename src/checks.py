@@ -43,7 +43,9 @@ def check_prior_column(figures, prior_column):
                 lines.append({"check": check, "result": "not_checked"})
             continue
         same = column_value.value == last_year.value
-        if not same:
+        if same:
+            last_year.why.append(f"egală cu {column_value.source}")
+        else:
             mark_conflict(last_year, (column_value.value, column_value.source))
         lines.append({"check": check, "result": "ok" if same else "conflict"})
     return lines
@@ -98,12 +100,24 @@ def evaluate(relation, figures):
     return holds, {relation["r"]: (calculated, f"calcul: „{a}” / „{b}”")}
 
 
+def describe(relation):
+    """A relation as a person writes it: "own_funds_total = own_funds_t1 + own_funds_t2 + own_funds_t3"."""
+    if relation["type"] == "sum":
+        minus = "".join(" − " + name for name in relation.get("minus", []))
+        return f"{relation['total']} = {' + '.join(relation['parts'])}{minus}"
+    if relation["type"] == "ratio":
+        return f"{relation['r']} = {relation['a']} / {relation['b']}"
+    if relation["type"] == "positive":
+        return f"{relation['a']} > 0"
+    return f"{relation['a']} {'=' if relation['type'] == 'equal' else '<'} {relation['b']}"
+
+
 def run_relations(figures, relations):
     """Check every relation, in file order. Returns one line per relation for verificari.md."""
     lines = []
     for relation in relations:
         names = figures_in(relation)
-        description = relation["type"] + ": " + ", ".join(names)
+        description = describe(relation)
         total = figures.get(relation.get("total"))
         parts = relation.get("parts", []) + relation.get("minus", [])
         if total is not None and total.reason[:1] == ("formula_no_value",) \
@@ -111,6 +125,7 @@ def run_relations(figures, relations):
             number, source = evaluate(relation, figures)[1][total.id]
             total.value, total.status, total.reason = number, "ok", ()
             total.source = f"{source} (formula din {total.source} nu are valoare salvată)"
+            total.why = ["calculată din valorile nerotunjite ale componentelor (formula nu are valoare salvată)"]
         missing = [name for name in names if figures[name].value is None]
         if missing:
             for name in marked(relation):
@@ -130,7 +145,10 @@ def run_relations(figures, relations):
             lines.append({"check": description, "result": "not_checked"})
             continue
         holds, others = evaluate(relation, figures)
-        if not holds:
+        if holds:
+            for name in names:
+                figures[name].why.append(f"verificată: {description}")
+        else:
             for name in marked(relation):
                 mark_conflict(figures[name], others.get(name))
         lines.append({"check": description, "result": "ok" if holds else "conflict"})
@@ -152,6 +170,7 @@ def apply_decisions(figures, decisions):
             source = dict(value.candidates)[decision["chosen"]]
             value.status, value.value, value.reason = "decision", Decimal(decision["chosen"]), ()
             value.source = f"{source}; ales prin decizia din {decision['date']}, aprobată de {decision['approved_by']}"
+            value.why = [f"aleasă prin decizia din {decision['date']}, aprobată de {decision['approved_by']}"]
         elif in_conflict:
             value.reason = ("decision_stale", when)
         lines.append({"decision": decision, "applied": applied})

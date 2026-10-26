@@ -50,12 +50,14 @@ def direction(current, prior):
 def change(current, prior):
     """The size of the change, as its own calculated figure: percent for amounts, points for percents."""
     figure_id, now, before = "change:" + current.id, current.value, prior.value
+    why = ["calculată din valorile nerotunjite"]
     if current.kind == "percent":
-        return Value(figure_id, "points", abs(now - before), f"calcul: |{exact(now)} − {exact(before)}|", current.label)
+        return Value(figure_id, "points", abs(now - before), f"calcul: |{exact(now)} − {exact(before)}|", current.label,
+                     why=why)
     if before == 0:
         return gap({"id": figure_id, "kind": "percent"}, "change_from_zero", label=current.label)
     return Value(figure_id, "percent", abs(now - before) / abs(before),
-                 f"calcul: |{exact(now)} − {exact(before)}| / {exact(before)}", current.label)
+                 f"calcul: |{exact(now)} − {exact(before)}| / {exact(before)}", current.label, why=why)
 
 
 def reason_text(value, cfg, explanations):
@@ -168,12 +170,13 @@ def write_trace(path, figures, cfg):
     """trasabilitate.csv: one line per figure, with its exact value, what the text shows, and why."""
     with open(path, "w", encoding="utf-8-sig", newline="") as file:  # BOM and ";" so Excel opens it in columns
         writer = csv.writer(file, delimiter=";")
-        writer.writerow(["cifra", "valoare", "afisat", "sursa", "eticheta", "unitate", "stare", "motiv"])
+        writer.writerow(["cifra", "valoare", "afisat", "sursa", "de_ce", "eticheta", "unitate", "stare", "motiv"])
         for value in figures.values():
             shown = display(value.kind, value.value, cfg["settings"]["format"]) if usable(value) else ""
+            why = "; ".join(value.why) if usable(value) else ""  # a gap or a conflict says why in "motiv"
             reason = "" if usable(value) else reason_text(value, cfg, {})
             writer.writerow([value.id, exact(value.value) if value.value is not None else "", shown, value.source,
-                             value.label, value.unit, STATUS[value.status], reason])
+                             why, value.label, value.unit, STATUS[value.status], reason])
 
 
 def approval(cfg, section):

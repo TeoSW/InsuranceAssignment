@@ -17,15 +17,15 @@
 
 - scr: coloana „an anterior” = registrul anului trecut: ok
 - solvency_ratio: identică cu 2024: CONFLICT
-- positive: scr: ok
-- positive: mcr: nu s-a putut verifica
-- sum: own_funds_total, own_funds_t1, own_funds_t2, own_funds_t3: ok
-- sum: scr_basic, scr_underwriting, scr_market, scr_counterparty, scr_diversification: ok
-- sum: scr_in_modules, scr_basic, scr_operational: ok
-- equal: scr, scr_in_modules: ok
-- ratio: own_funds_total, scr, solvency_ratio: CONFLICT
-- less: mcr, scr: nu s-a putut verifica
-- equal: dividends_paid, dividends_approved: ok
+- scr > 0: ok
+- mcr > 0: nu s-a putut verifica
+- own_funds_total = own_funds_t1 + own_funds_t2 + own_funds_t3: ok
+- scr_basic = scr_underwriting + scr_market + scr_counterparty − scr_diversification: ok
+- scr_in_modules = scr_basic + scr_operational: ok
+- scr = scr_in_modules: ok
+- solvency_ratio = own_funds_total / scr: CONFLICT
+- mcr < scr: nu s-a putut verifica
+- dividends_paid = dividends_approved: ok
 
 ## Goluri în draft (de completat înainte de publicare)
 
