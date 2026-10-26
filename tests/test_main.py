@@ -101,6 +101,14 @@ class ApprovedTest(RunCase):
         self.assertTrue(self.output("sectiunea_E_2025.md").startswith("# E. GESTIONAREA CAPITALULUI"))
         self.assertIn("- E: aprobat de Test la", self.output("verificari.md"))
 
+    def test_text_changed_after_approval_is_not_approved(self):
+        sentences = self.tmp / "config" / "sentences.toml"
+        sentences.write_text(sentences.read_text(encoding="utf-8").replace(
+            "în principal ca urmare a scăderii riscului de piață", "datorită programului de reasigurare"), encoding="utf-8")
+        self.run_main()
+        self.assertTrue(self.output("sectiunea_E_2025.md").startswith("> ȘABLON NEAPROBAT"))
+        self.assertIn("textul s-a schimbat după aprobare", self.output("verificari.md"))
+
     def test_verificari_lists_every_gap_of_the_draft(self):
         self.run_main()
         checks = self.output("verificari.md")

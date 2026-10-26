@@ -1,6 +1,7 @@
 # approvals.toml: who approved the wording of each section, and when. Written only by people.
-# The approval covers templates/<section>.md and that section's sentences in sentences.toml.
-# A section without approved_by and approved_on is drawn with a "not approved" line on top.
+# The approval covers templates/<section>.md and the whole of sentences.toml: their sha256 is stored
+# here, so any word changed after the approval brings the "not approved" line back.
+# verificari.md prints the sha256 of the text in use; copy it here when you approve.
 
 # In this assessment the author approves the wording; in production it would be the CFO
 # or the person he names.
@@ -8,3 +9,4 @@
 [E]
 approved_by = "Teodor-Vasile Constantin"     # who approved the wording ("" = not approved)
 approved_on = "2026-10-26"                   # "YYYY-MM-DD"
+sha256 = ""                                  # sha256 of the approved text, from verificari.md ("" = not approved)

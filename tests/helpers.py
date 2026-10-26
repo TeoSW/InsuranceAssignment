@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATE = ROOT / "date"  # the client's files; tests that need them are skipped when it is missing
 sys.path.insert(0, str(ROOT / "src"))
 
+from config import text_sha256  # noqa: E402  (after src/ is on the path)
+
 
 def make_book(path, sheets):
     """Write a small .xlsx. sheets = [(title, rows)] or [(title, rows, state)]; rows start at A1."""
@@ -46,5 +48,7 @@ def project_copy(tmp, confirm=False, approve=False):
                    for entry in entries]
     facts.write_text("[[fact]]".join(entries), encoding="utf-8")
     approvals = tmp / "config" / "approvals.toml"
-    approver = 'approved_by = "Test"' if approve else 'approved_by = ""'
-    approvals.write_text(re.sub(r'approved_by = "[^"]*"', approver, approvals.read_text(encoding="utf-8")), encoding="utf-8")
+    text = re.sub(r'approved_by = "[^"]*"', 'approved_by = "Test"' if approve else 'approved_by = ""',
+                  approvals.read_text(encoding="utf-8"))
+    sha = text_sha256(tmp / "config", "E") if approve else ""
+    approvals.write_text(re.sub(r'sha256 = "[^"]*"', f'sha256 = "{sha}"', text), encoding="utf-8")

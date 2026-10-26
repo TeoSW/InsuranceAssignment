@@ -61,7 +61,7 @@ def draft(cfg, folder, output, checks_file):
     gaps = []
     for section in settings["sections"]:
         text, calculated, section_gaps = render_section(cfg["templates"][section], cfg["sentences"], figures, cfg["facts"], problems, cfg)
-        if not approval(cfg, section):
+        if not approval(cfg, section)[0]:
             text = settings["words"]["not_approved"] + "\n\n" + text
         name = settings["output"]["draft"].format(section=section, year=settings["reporting_year"])
         (output / name).write_text(text, encoding="utf-8")

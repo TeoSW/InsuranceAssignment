@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 import helpers
-from config import load_config
+from config import load_config, text_sha256
 
 CONFIG = helpers.ROOT / "config"
 
@@ -234,6 +234,19 @@ class SentenceTest(ConfigCase):
     def test_needed_fact_must_exist(self):
         self.edit("sentences.toml", 'needs = ["standard_formula"]', 'needs = ["standard_formulae"]')
         self.assertError("standard_formulae")
+
+
+class TextHashTest(ConfigCase):
+    def test_line_endings_do_not_change_the_hash(self):
+        before = text_sha256(self.config, "E")
+        template = self.config / "templates" / "E.md"
+        template.write_bytes(template.read_bytes().replace(b"\n", b"\r\n"))
+        self.assertEqual(text_sha256(self.config, "E"), before)
+
+    def test_a_changed_word_changes_the_hash(self):
+        before = text_sha256(self.config, "E")
+        self.edit("sentences.toml", "la sfârșitul anului {prior_year}.", "la finalul anului {prior_year}.")
+        self.assertNotEqual(text_sha256(self.config, "E"), before)
 
 
 class GapReasonsTest(ConfigCase):

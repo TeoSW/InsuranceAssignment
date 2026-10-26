@@ -4,6 +4,7 @@ load_config returns the config and a list of errors. Any error stops the run bef
 written. Only config problems are checked here; problems in the workbook become gaps later.
 """
 
+import hashlib
 import re
 import tomllib
 from datetime import date
@@ -54,10 +55,11 @@ def load_config(folder):
     if errors:
         return cfg, errors
     errors += missing_fields(cfg["settings"], "settings", "settings.toml")
-    cfg["templates"] = {}
+    cfg["templates"], cfg["text_sha256"] = {}, {}
     for section in cfg["settings"].get("sections", []):
         try:
             cfg["templates"][section] = (Path(folder) / "templates" / f"{section}.md").read_text(encoding="utf-8")
+            cfg["text_sha256"][section] = text_sha256(folder, section)
         except OSError as error:
             errors.append(f"config/templates/{section}.md nu poate fi citit: {error}")
     for name, key in (("figures", "figure"), ("relations", "relation"), ("facts", "fact"), ("decisions", "decision"),
@@ -82,6 +84,15 @@ def load_config(folder):
     errors += check_sentences(cfg["sentences"], cfg["templates"], ids, cfg["facts"])
     errors += [f"gap_reasons.toml: lipsește motivul „{name}”" for name in GAP_REASONS if name not in cfg["gap_reasons"]]
     return cfg, errors
+
+
+def text_sha256(folder, section):
+    """The fingerprint of a section's wording: templates/<section>.md plus sentences.toml.
+    Line endings are ignored, so a Windows checkout does not change it; any changed word does."""
+    digest = hashlib.sha256()
+    for path in (Path(folder) / "templates" / f"{section}.md", Path(folder) / "sentences.toml"):
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()
 
 
 def missing_fields(entry, kind, where):

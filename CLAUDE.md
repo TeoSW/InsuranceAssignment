@@ -56,12 +56,12 @@ A wrong figure or an unsupported sentence is far worse than a visible gap. When 
 
 ## Text
 
-- The program never composes text. All report text (headings and sentences, sections A to E and the summary) lives in human-approved templates, with who approved them and when. Wording changes with legislation, EU rules or the company, and only a human changes it.
+- The program never composes text. All report text (headings and sentences, sections A to E and the summary) lives in human-approved templates, with who approved them, when, and the sha256 of the approved text (`templates/<section>.md` plus `sentences.toml`, line endings ignored). Wording changes with legislation, EU rules or the company, and only a human changes it.
 - The program only fills placeholders (figures, years), picks direction words from a closed list ("în creștere" / "în scădere"), picks between human-written sentence variants by rule, and inserts gaps whose reasons come from a fixed catalog in config.
 - Sentence variants live in config with a simple condition (`X == 0`, `X > 0`, `changed X`, `fact F`); the first variant whose condition holds is used. Every sentence ends with a fallback variant with no condition and no direction or change. Direction and change appear only in variants whose condition is `changed X` or `fact F`. If the chosen variant cannot be filled, the whole sentence becomes one gap.
 - Direction is computed from unrounded figures and written only if the displayed values differ. The approved rule may add the size of the change, also on unrounded values, comparison year from config: "în scădere cu 2,1 % față de 2024". Ratios change in percentage points ("puncte procentuale"). The size of the change is a calculated figure with its own line in `trasabilitate.csv`.
 - A cause is a human-written variant. It appears only if a confirmed fact supports it and the direction in the document matches the computed one.
-- A template without an approval record (who and when) is reported, and the draft is marked as not approved.
+- A section without an approval record (who and when), or whose stored sha256 differs from the text in use, is reported in `verificari.md` (with the current sha256 to copy), and the draft is marked as not approved.
 - Only the sections listed in config are rendered: E for this delivery. Adding a section needs config and templates only.
 
 ## Current decisions and assumptions (from DESIGN.md)

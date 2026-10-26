@@ -177,11 +177,15 @@ def write_trace(path, figures, cfg):
 
 
 def approval(cfg, section):
-    """"aprobat de X la Y" for a section whose text is approved; None otherwise."""
-    record = cfg["approvals"].get(section, {})
-    if record.get("approved_by") and record.get("approved_on"):
-        return f"aprobat de {record['approved_by']} la {record['approved_on']}"
-    return None
+    """(approved?, the line for verificari.md). Approved means who, when, and the sha256 of exactly
+    the text in use (templates/<section>.md + sentences.toml)."""
+    record, current = cfg["approvals"].get(section, {}), cfg["text_sha256"][section]
+    if not (record.get("approved_by") and record.get("approved_on")):
+        return False, f"NEAPROBAT (sha256 al textului actual: {current})"
+    if record.get("sha256") != current:
+        problem = "lipsește sha256 în approvals.toml" if not record.get("sha256") else "textul s-a schimbat după aprobare"
+        return False, f"NEAPROBAT: {problem} (sha256 aprobat: {record.get('sha256') or '-'}; sha256 actual: {current})"
+    return True, f"aprobat de {record['approved_by']} la {record['approved_on']} (sha256 {current})"
 
 
 def write_checks(path, report, cfg):
@@ -212,7 +216,7 @@ def write_checks(path, report, cfg):
             ("Conflicte (așteaptă o decizie în config/decisions.toml)", conflicts, "- niciunul"),
             ("Decizii", decisions, "- niciuna"),
             ("Fapte din documente", facts, None),
-            ("Aprobarea textului", [f"- {s}: {approval(cfg, s) or 'NEAPROBAT'}" for s in cfg["settings"]["sections"]], None),
+            ("Aprobarea textului", [f"- {s}: {approval(cfg, s)[1]}" for s in cfg["settings"]["sections"]], None),
         ]
     lines = ["# Verificări"]
     for title, items, empty in blocks:
